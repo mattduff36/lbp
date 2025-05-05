@@ -1,26 +1,37 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
+import { ModalProps } from './types'
 
-interface ModalProps {
-  isOpen: boolean
-  onClose: () => void
-  title: string
-  children: React.ReactNode
-}
+export default function Modal({ isOpen, onClose, children }: ModalProps & { children: React.ReactNode }) {
+  const modalRef = useRef<HTMLDivElement>(null)
 
-export default function Modal({ isOpen, onClose, title, children }: ModalProps) {
   useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        onClose()
+      }
+    }
+
+    const handleClickOutside = (e: MouseEvent) => {
+      if (modalRef.current && !modalRef.current.contains(e.target as Node)) {
+        onClose()
+      }
+    }
+
     if (isOpen) {
+      document.addEventListener('keydown', handleEscape)
+      document.addEventListener('mousedown', handleClickOutside)
       document.body.style.overflow = 'hidden'
-    } else {
-      document.body.style.overflow = 'unset'
     }
+
     return () => {
+      document.removeEventListener('keydown', handleEscape)
+      document.removeEventListener('mousedown', handleClickOutside)
       document.body.style.overflow = 'unset'
     }
-  }, [isOpen])
+  }, [isOpen, onClose])
 
   return (
     <AnimatePresence>
@@ -29,34 +40,30 @@ export default function Modal({ isOpen, onClose, title, children }: ModalProps) 
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          transition={{ duration: 0.3 }}
-          className="fixed inset-0 z-50 flex items-center justify-center"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4"
         >
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0 }}
-            animate={{ opacity: 0.5 }}
+            animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.3 }}
-            className="fixed inset-0 bg-black"
-            onClick={onClose}
+            className="absolute inset-0 bg-black bg-opacity-75"
+            aria-hidden="true"
           />
-          <motion.div 
-            initial={{ opacity: 0, scale: 0.9, y: 20 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.9, y: 20 }}
-            transition={{ duration: 0.3, ease: "easeOut" }}
-            className="relative bg-white rounded-lg p-8 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto"
+
+          <motion.div
+            ref={modalRef}
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            exit={{ scale: 0.9, opacity: 0 }}
+            transition={{ type: 'spring', damping: 15, stiffness: 200 }}
+            className="relative bg-white rounded-lg text-left overflow-hidden shadow-xl w-full max-w-lg"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="modal-title"
           >
-            <button
-              onClick={onClose}
-              className="absolute top-4 right-4 text-gray-500 hover:text-gray-700"
-            >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-            <h2 className="text-2xl font-medium text-gray-400 tracking-wider uppercase font-montserrat text-center mb-6">{title}</h2>
-            {children}
+            <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+              {children}
+            </div>
           </motion.div>
         </motion.div>
       )}

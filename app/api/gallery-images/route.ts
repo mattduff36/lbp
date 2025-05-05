@@ -4,15 +4,15 @@ import path from 'path';
 
 export async function GET() {
   try {
-    const imagesDir = path.join(process.cwd(), 'public', 'gallery_images');
-    const files = fs.readdirSync(imagesDir);
+    const galleryImagesDir = path.join(process.cwd(), 'public', 'gallery_images');
+    const files = fs.readdirSync(galleryImagesDir);
     
     const images = files
       .filter(file => /\.(jpg|jpeg|png|gif)$/i.test(file))
       .map((file, index) => ({
-        id: index + 1,
+        id: `image-${index}`,
         src: `/gallery_images/${file}`,
-        alt: `Gallery image ${file.split('.')[0]}`
+        alt: `Gallery image ${index + 1}`
       }));
 
     return NextResponse.json(images);

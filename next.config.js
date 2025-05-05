@@ -2,22 +2,18 @@
 const nextConfig = {
   reactStrictMode: true,
   images: {
-    unoptimized: true,
-    remotePatterns: [
-      {
-        protocol: 'https',
-        hostname: 'leebarrow.vercel.app',
-      },
-    ],
+    domains: ['localhost'],
+    unoptimized: false,
   },
-  trailingSlash: true,
-  experimental: {
-    serverActions: true,
-    serverComponentsExternalPackages: [],
-  },
-  webpack: (config) => {
-    config.resolve.fallback = { fs: false, path: false };
-    return config;
+  webpack: (config, { isServer }) => {
+    if (!isServer) {
+      config.resolve.fallback = {
+        ...config.resolve.fallback,
+        fs: false,
+        path: false,
+      }
+    }
+    return config
   }
 }
 
