@@ -96,13 +96,16 @@ export default function ClientHero() {
         </motion.div>
       </AnimatePresence>
       <div className="absolute inset-0 flex items-center justify-center z-10">
-        <div className="text-center text-white px-4">
-          <h1 className="hero-text">Lee Barrowcliff</h1>
-          <p className="text-2xl md:text-3xl font-marcellus tracking-wider">
-            Photography
-          </p>
-        </div>
+          <div className="text-center text-white px-4">
+            <Image
+              src="/Logo-trans.png"
+              alt="Lee Barrowcliff Photography"
+              width={450}
+              height={150}
+              className="object-contain"
+            />
+          </div>
       </div>
     </div>
   );
-} 
+}
