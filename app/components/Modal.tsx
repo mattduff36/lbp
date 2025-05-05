@@ -64,7 +64,7 @@ export default function Modal({ isOpen, onClose, title, children }: ModalProps &
           >
             <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
               {title && ( // Display title if provided
-                <h2 className="text-lg font-medium leading-6 text-gray-900 mb-4" id="modal-title-id">
+                <h2 className="text-lg font-medium leading-6 text-gray-900 mb-4 text-center" id="modal-title-id">
                   {title}
                 </h2>
               )}

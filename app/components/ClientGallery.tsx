@@ -45,29 +45,30 @@ export default function ClientGallery() {
   return (
     <div className="relative">
       <section id="gallery" className="py-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="mx-auto px-4 sm:px-6 lg:px-8">
           <h2 className="text-3xl font-medium text-gray-400 tracking-wider uppercase font-montserrat text-center mb-8">
             Gallery
           </h2>
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 sm:gap-3 md:gap-4">
-            {images.map((image, index) => ( // Add index parameter here
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-3 md:gap-4">
+            {images.map((image, index) => (
               <motion.div
                 key={image.id}
-                className="relative aspect-square overflow-hidden cursor-pointer"
+                className="relative overflow-hidden cursor-pointer"
+                style={{ width: '250px', height: '250px' }}
                 whileHover={{ scale: 1.02 }}
                 transition={{ duration: 0.2 }}
-                onClick={() => setSelectedImage(image)}
-                tabIndex={0} // Add for accessibility
-                aria-label={`View image ${image.alt}`} // Add for accessibility
-                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setSelectedImage(image) }} // Add for accessibility
+                onClick={() => setTimeout(() => setSelectedImage(image), 0)}
+                tabIndex={0}
+                aria-label={`View image ${image.alt}`}
+                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setTimeout(() => setSelectedImage(image), 0) }}
               >
                 <Image
                   src={image.src}
                   alt={image.alt}
-                  fill // Use fill to cover the parent div
-                  className="object-cover" // Keep object-cover
-                  sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, 25vw" // Add sizes for responsiveness
-                  priority={index < 8} // Prioritize loading first few images
+                  fill
+                  className="object-cover"
+                  sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, 25vw"
+                  priority={index < 8}
                 />
               </motion.div>
             ))}
@@ -91,23 +92,21 @@ export default function ClientGallery() {
               onClick={(e) => e.stopPropagation()}
               className="relative max-w-full max-h-full w-auto h-auto"
             >
-              {/* Replace img with next/image */}
               <Image
                 src={selectedImage.src}
                 alt={selectedImage.alt}
-                // Use width and height for intrinsic sizing, or fill if parent has dimensions
-                // Since the parent div controls max size, let's try width/height 0 and style
                 width={0}
                 height={0}
-                sizes="90vw" // Estimate viewport width
-                style={{ width: 'auto', height: 'auto', maxWidth: '100%', maxHeight: '90vh' }} // Maintain aspect ratio within bounds
-                className="object-contain" // Keep object-contain
-                priority // Prioritize loading the modal image
+                sizes="100vw"
+                style={{ width: 'auto', height: 'auto', maxWidth: '100%', maxHeight: '90vh' }}
+                className="object-contain"
+                priority
+                onError={(e) => console.error('Error loading image:', selectedImage.src, e)}
               />
             </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
     </div>
-  )
+  );
 }
