@@ -88,13 +88,21 @@ export default function ClientGallery() {
               initial={{ scale: 0.9 }}
               animate={{ scale: 1 }}
               exit={{ scale: 0.9 }}
-              className="relative max-w-full max-h-full"
               onClick={(e) => e.stopPropagation()}
+              className="relative max-w-full max-h-full w-auto h-auto"
             >
-              <img
+              {/* Replace img with next/image */}
+              <Image
                 src={selectedImage.src}
                 alt={selectedImage.alt}
-                className="max-w-full max-h-[90vh] object-contain"
+                // Use width and height for intrinsic sizing, or fill if parent has dimensions
+                // Since the parent div controls max size, let's try width/height 0 and style
+                width={0}
+                height={0}
+                sizes="90vw" // Estimate viewport width
+                style={{ width: 'auto', height: 'auto', maxWidth: '100%', maxHeight: '90vh' }} // Maintain aspect ratio within bounds
+                className="object-contain" // Keep object-contain
+                priority // Prioritize loading the modal image
               />
             </motion.div>
           </motion.div>
