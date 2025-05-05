@@ -1,6 +1,7 @@
 export interface ModalProps {
   isOpen: boolean;
   onClose: () => void;
+  title?: string; // Add optional title prop
 }
 
 export interface HeroImage {
@@ -26,4 +27,4 @@ export interface ContactFormData {
 export interface EmailResponse {
   success: boolean;
   message: string;
-} 
+}

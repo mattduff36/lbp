@@ -4,7 +4,7 @@ import { useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { ModalProps } from './types'
 
-export default function Modal({ isOpen, onClose, children }: ModalProps & { children: React.ReactNode }) {
+export default function Modal({ isOpen, onClose, title, children }: ModalProps & { children: React.ReactNode }) { // Add title prop
   const modalRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -59,14 +59,22 @@ export default function Modal({ isOpen, onClose, children }: ModalProps & { chil
             className="relative bg-white rounded-lg text-left overflow-hidden shadow-xl w-full max-w-lg"
             role="dialog"
             aria-modal="true"
-            aria-labelledby="modal-title"
+            aria-labelledby={title ? "modal-title-id" : undefined} // Conditionally set aria-labelledby
+            aria-describedby="modal-description-id" // Assuming children contain the description
           >
             <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
-              {children}
+              {title && ( // Display title if provided
+                <h2 className="text-lg font-medium leading-6 text-gray-900 mb-4" id="modal-title-id">
+                  {title}
+                </h2>
+              )}
+              <div id="modal-description-id"> {/* Wrap children for aria-describedby */}
+                {children}
+              </div>
             </div>
           </motion.div>
         </motion.div>
       )}
     </AnimatePresence>
   )
-} 
+}

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
+import Image from 'next/image' // Import next/image
 import { GalleryImage } from './types'
 
 export default function ClientGallery() {
@@ -49,18 +50,24 @@ export default function ClientGallery() {
             Gallery
           </h2>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 sm:gap-3 md:gap-4">
-            {images.map((image) => (
+            {images.map((image, index) => ( // Add index parameter here
               <motion.div
                 key={image.id}
                 className="relative aspect-square overflow-hidden cursor-pointer"
                 whileHover={{ scale: 1.02 }}
                 transition={{ duration: 0.2 }}
                 onClick={() => setSelectedImage(image)}
+                tabIndex={0} // Add for accessibility
+                aria-label={`View image ${image.alt}`} // Add for accessibility
+                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setSelectedImage(image) }} // Add for accessibility
               >
-                <img
+                <Image
                   src={image.src}
                   alt={image.alt}
-                  className="w-full h-full object-cover"
+                  fill // Use fill to cover the parent div
+                  className="object-cover" // Keep object-cover
+                  sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, 25vw" // Add sizes for responsiveness
+                  priority={index < 8} // Prioritize loading first few images
                 />
               </motion.div>
             ))}
@@ -95,4 +102,4 @@ export default function ClientGallery() {
       </AnimatePresence>
     </div>
   )
-} 
+}
