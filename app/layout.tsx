@@ -3,6 +3,7 @@ import type { Metadata } from 'next'
 import { Great_Vibes, Marcellus, Montserrat } from 'next/font/google'
 import ClientLayout from './components/ClientLayout'
 import Providers from './providers'
+import { Analytics } from "@vercel/analytics/react"
 
 const greatVibes = Great_Vibes({
   weight: '400',
@@ -45,6 +46,7 @@ export default function RootLayout({
         <Providers>
           <ClientLayout>{children}</ClientLayout>
         </Providers>
+        <Analytics />
       </body>
     </html>
   )
