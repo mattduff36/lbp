@@ -44,17 +44,16 @@ export default function ClientGallery() {
 
   return (
     <div className="relative">
-      <section id="gallery" className="py-16">
-        <div className="mx-auto px-4 sm:px-6 lg:px-8">
+      <section id="gallery" className="py-16 w-full">
+        <div className="w-full px-8">
           <h2 className="text-3xl font-medium text-gray-400 tracking-wider uppercase font-montserrat text-center mb-8">
             Gallery
           </h2>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-3 md:gap-4">
+          <div className="grid grid-cols-4 gap-[5px] w-full">
             {images.map((image, index) => (
               <motion.div
                 key={image.id}
-                className="relative overflow-hidden cursor-pointer"
-                style={{ width: '250px', height: '250px' }}
+                className="relative overflow-hidden cursor-pointer aspect-square"
                 whileHover={{ scale: 1.02 }}
                 transition={{ duration: 0.2 }}
                 onClick={() => setTimeout(() => setSelectedImage(image), 0)}
@@ -67,7 +66,7 @@ export default function ClientGallery() {
                   alt={image.alt}
                   fill
                   className="object-cover"
-                  sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, 25vw"
+                  sizes="calc((100vw - 2rem - 15px) / 4)"
                   priority={index < 8}
                 />
               </motion.div>
@@ -89,8 +88,16 @@ export default function ClientGallery() {
               initial={{ scale: 0.9 }}
               animate={{ scale: 1 }}
               exit={{ scale: 0.9 }}
-              onClick={(e) => e.stopPropagation()}
-              className="relative max-w-full max-h-full w-auto h-auto"
+              onClick={(e) => {
+                e.stopPropagation();
+                const currentIndex = images.findIndex(img => img.id === selectedImage.id);
+                if (currentIndex === images.length - 1) {
+                  setSelectedImage(null);
+                } else {
+                  setSelectedImage(images[currentIndex + 1]);
+                }
+              }}
+              className="relative max-w-full max-h-full w-auto h-auto cursor-pointer"
             >
               <Image
                 src={selectedImage.src}
