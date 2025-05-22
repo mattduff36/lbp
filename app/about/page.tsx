@@ -29,11 +29,14 @@ export default function AboutPage() {
               </p>
             </div>
           </div>
-          <div className="relative aspect-square bg-gray-900 rounded-lg overflow-hidden">
-            {/* Placeholder for Lee's photo */}
-            <div className="absolute inset-0 flex items-center justify-center text-gray-400">
-              Photo of Lee coming soon
-            </div>
+          <div className="relative aspect-square rounded-lg overflow-hidden">
+            <Image
+              src="/lee-headshot.png"
+              alt="Lee Barrowcliff - Photographer"
+              fill
+              className="object-cover"
+              priority
+            />
           </div>
         </div>
       </div>
