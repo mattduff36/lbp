@@ -1,6 +1,6 @@
 'use client'
 
-import ClientGallery from './ClientGallery'
+import ClientPortfolio from './ClientPortfolio'
 // Remove unused import: import { GalleryImage } from './types'
 
 // Remove unused interface:
@@ -10,6 +10,6 @@ import ClientGallery from './ClientGallery'
 
 // Remove unused props: export default function GalleryWrapper({ images }: GalleryWrapperProps) {
 export default function GalleryWrapper() {
-  // Remove unused prop: return <ClientGallery images={images} />
-  return <ClientGallery />
+  // Remove unused prop: return <ClientPortfolio images={images} />
+  return <ClientPortfolio />
 }
