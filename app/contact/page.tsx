@@ -18,8 +18,9 @@ export default function ContactPage() {
               <div className="mt-8 space-y-4">
                 <div>
                   <h2 className="text-xl font-medium text-gray-300 mb-2">Contact Information</h2>
-                  <p className="text-gray-300">Email: info@leebarrowcliffphotography.com</p>
-                  <p className="text-gray-300">Phone: 07700 900000</p>
+                  <p className="text-gray-300">
+                    Email: <a href="mailto:info@leebarrowcliffphotography.com" className="text-gray-300 hover:text-white transition-colors duration-200">info@leebarrowcliffphotography.com</a>
+                  </p>
                   <p className="text-gray-300">Website: leebarrowcliffphotography.com</p>
                 </div>
                 <div>
