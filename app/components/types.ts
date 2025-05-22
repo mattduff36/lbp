@@ -10,6 +10,12 @@ export interface HeroImage {
   alt: string;
 }
 
+export interface PortfolioImage {
+  id: string;
+  src: string;
+  alt: string;
+}
+
 export interface GalleryImage {
   id: number;
   src: string;

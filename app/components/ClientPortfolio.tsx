@@ -3,21 +3,21 @@
 import { useEffect, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import Image from 'next/image' // Import next/image
-import { GalleryImage } from './types'
+import { PortfolioImage } from './types'
 
-export default function ClientGallery() {
-  const [images, setImages] = useState<GalleryImage[]>([])
+export default function ClientPortfolio() {
+  const [images, setImages] = useState<PortfolioImage[]>([])
   const [loading, setLoading] = useState(true)
-  const [selectedImage, setSelectedImage] = useState<GalleryImage | null>(null)
+  const [selectedImage, setSelectedImage] = useState<PortfolioImage | null>(null)
 
   useEffect(() => {
     const fetchImages = async () => {
       try {
-        const response = await fetch('/api/gallery-images')
+        const response = await fetch('/api/portfolio-images')
         const data = await response.json()
         setImages(data)
       } catch (error) {
-        console.error('Error fetching gallery images:', error)
+        console.error('Error fetching portfolio images:', error)
       } finally {
         setLoading(false)
       }
@@ -44,10 +44,10 @@ export default function ClientGallery() {
 
   return (
     <div className="relative">
-      <section id="gallery" className="py-16 w-full">
+      <section id="portfolio" className="py-16 w-full">
         <div className="w-full px-8">
           <h2 className="text-3xl font-medium text-gray-400 tracking-wider uppercase font-montserrat text-center mb-8">
-            Gallery
+            Portfolio
           </h2>
           <div className="grid grid-cols-4 gap-[5px] w-full">
             {images.map((image, index) => (

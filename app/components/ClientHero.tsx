@@ -52,7 +52,7 @@ export default function ClientHero() {
 
   if (loading) {
     return (
-      <div className="relative w-full h-screen flex items-center justify-center">
+      <div className="relative w-full h-[calc(100vh-4rem)] flex items-center justify-center">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-gray-500"></div>
       </div>
     );
@@ -60,7 +60,7 @@ export default function ClientHero() {
 
   if (images.length === 0) {
     return (
-      <div className="relative w-full h-screen flex items-center justify-center">
+      <div className="relative w-full h-[calc(100vh-4rem)] flex items-center justify-center">
         <div className="relative z-10 text-center text-white px-4">
           <h1 className="hero-text">Lee Barrowcliff</h1>
           <p className="text-2xl md:text-3xl font-marcellus tracking-wider">
@@ -73,7 +73,7 @@ export default function ClientHero() {
 
   return (
     <div 
-      className="relative w-full h-screen overflow-hidden cursor-pointer"
+      className="relative w-full h-[calc(100vh-4rem)] overflow-hidden cursor-pointer"
       onClick={handleImageClick}
     >
       <AnimatePresence initial={false}>
@@ -96,13 +96,14 @@ export default function ClientHero() {
         </motion.div>
       </AnimatePresence>
       <div className="absolute inset-0 flex items-center justify-center z-10">
-          <div className="text-center text-white px-4">
+          <div className="text-center text-white px-4 w-full max-w-[900px]">
             <Image
-              src="/Logo-trans.png"
+              src="/LBP Logo.png"
               alt="Lee Barrowcliff Photography"
-              width={450}
-              height={150}
-              className="object-contain"
+              width={900}
+              height={300}
+              className="object-contain w-full h-auto"
+              priority
             />
           </div>
       </div>
