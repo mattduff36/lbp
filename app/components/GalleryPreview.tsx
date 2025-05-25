@@ -14,7 +14,7 @@ export default function GalleryPreview({ name, path, previewImageSrc }: GalleryP
   if (!previewImageSrc) {
     return (
       <Link href={path} className="block group">
-        <div className="relative aspect-[4/3] bg-gray-800 rounded-lg flex flex-col items-center justify-center p-4">
+        <div className="relative aspect-[4/3] bg-gray-800 flex flex-col items-center justify-center p-4">
           <p className="text-gray-400 text-center text-sm mb-2">No preview image available</p>
           <div className="absolute inset-0 flex items-center justify-center">
              <motion.h3 
@@ -33,7 +33,7 @@ export default function GalleryPreview({ name, path, previewImageSrc }: GalleryP
 
   return (
     <Link href={path} className="block group">
-      <div className="relative aspect-[4/3] overflow-hidden rounded-lg">
+      <div className="relative aspect-[4/3] overflow-hidden">
         <Image
           src={previewImageSrc}
           alt={`${name} gallery preview`}

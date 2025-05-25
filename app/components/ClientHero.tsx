@@ -54,10 +54,10 @@ export default function ClientHero() {
     return (
       <div className="relative w-full h-[calc(100vh-4rem)] flex items-center justify-center bg-black">
         <motion.div
-          initial={{ opacity: 0.5, scale: 0.95 }}
-          animate={{ opacity: [0.5, 1, 0.5], scale: [0.95, 1, 0.95] }}
+          initial={{ opacity: 0.6 }}
+          animate={{ opacity: [0.6, 1, 0.6] }}
           transition={{
-            duration: 2,
+            duration: 1.5,
             repeat: Infinity,
             ease: "easeInOut",
           }}

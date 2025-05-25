@@ -123,12 +123,19 @@ const PortfolioGallery = ({ category, title }: PortfolioGalleryProps) => {
     return (
       <div className="min-h-screen bg-black flex items-center justify-center">
         <motion.div 
-          className="text-3xl font-medium text-gray-300 tracking-wider uppercase font-montserrat"
-          variants={loadingVariants}
+          variants={loadingVariants} // Re-use the pulsing opacity animation
           initial="initial"
           animate="animate"
+          // Optional: adjust size of the motion div if needed, or let Image control size
         >
-          Loading...
+          <Image
+            src="/LBP Logo.png"
+            alt="Loading Gallery..."
+            width={300} // Smaller logo for gallery loading
+            height={100} // Adjust height proportionally
+            className="object-contain"
+            priority // It's a key loading indicator
+          />
         </motion.div>
       </div>
     );
