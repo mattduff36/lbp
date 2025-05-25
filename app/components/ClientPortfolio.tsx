@@ -58,12 +58,12 @@ export default function ClientPortfolio() {
                 transition={{ duration: 0.2 }}
                 onClick={() => setTimeout(() => setSelectedImage(image), 0)}
                 tabIndex={0}
-                aria-label={`View image ${image.alt}`}
+                aria-label={`View image ${image.name}`}
                 onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setTimeout(() => setSelectedImage(image), 0) }}
               >
                 <Image
                   src={image.src}
-                  alt={image.alt}
+                  alt={image.name}
                   fill
                   className="object-cover"
                   sizes="calc((100vw - 2rem - 15px) / 4)"
@@ -101,7 +101,7 @@ export default function ClientPortfolio() {
             >
               <Image
                 src={selectedImage.src}
-                alt={selectedImage.alt}
+                alt={selectedImage.name}
                 width={0}
                 height={0}
                 sizes="100vw"
