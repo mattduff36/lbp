@@ -27,12 +27,12 @@ export default function ClientLayout({ children }: ClientLayoutProps) {
   }
 
   const galleries = [
-    { name: 'Weddings', path: '/portfolio/weddings' },
-    { name: 'Portraits', path: '/portfolio/portraits' },
-    { name: 'Events', path: '/portfolio/events' },
-    { name: 'Landscapes', path: '/portfolio/landscapes' },
-    { name: 'Wildlife', path: '/portfolio/wildlife' },
-    { name: 'Architecture', path: '/portfolio/architecture' },
+    { name: 'Wedding', path: '/portfolio/wedding' },
+    { name: 'Portrait', path: '/portfolio/portrait' },
+    { name: 'Lifestyle', path: '/portfolio/lifestyle' },
+    { name: 'Landscape', path: '/portfolio/landscape' },
+    { name: 'Animals', path: '/portfolio/animals' },
+    { name: 'Sport', path: '/portfolio/sport' },
   ]
 
   const handleMouseEnter = () => {

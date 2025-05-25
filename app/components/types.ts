@@ -1,7 +1,7 @@
 export interface ModalProps {
   isOpen: boolean;
   onClose: () => void;
-  title?: string; // Add optional title prop
+  children: React.ReactNode;
 }
 
 export interface HeroImage {
@@ -13,7 +13,8 @@ export interface HeroImage {
 export interface PortfolioImage {
   id: string;
   src: string;
-  alt: string;
+  name: string;
+  category: string;
 }
 
 export interface GalleryImage {
