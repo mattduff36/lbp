@@ -46,7 +46,6 @@ const calculateFileHash = (filePath: string): string => {
     const fileBuffer = fs.readFileSync(filePath);
     return crypto.createHash('md5').update(fileBuffer).digest('hex');
   } catch (error) {
-    // console.error(`Error calculating hash for ${filePath}:`, error); // Can be noisy
     return '';
   }
 };
@@ -101,17 +100,12 @@ const downloadImage = async (fileId: string, destinationPath: string): Promise<v
           reject(err);
         })
         .on('finish', () => {
-          // fileStream.close(); // Not needed, 'finish' implies closed for writable streams when piping
           console.log(`Downloaded: ${destinationPath}`);
           resolve();
         });
     });
   } catch (error) {
     console.error(`Error initiating download for file ${fileId}:`, error);
-    // Ensure a failed download doesn't leave an empty/partial file if possible, though unlink is in stream error handling
-    if (fs.existsSync(destinationPath)) {
-        // fs.unlinkSync(destinationPath); // Risky if another process just finished it
-    }
     throw error;
   }
 };
