@@ -55,31 +55,69 @@ const PortfolioGallery = ({ category, title }: PortfolioGalleryProps) => {
   const [images, setImages] = useState<PortfolioImage[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isRefreshing, setIsRefreshing] = useState(false); // To prevent multiple refresh calls if user navigates away and back quickly
 
   useEffect(() => {
-    const fetchImages = async () => {
-      setIsLoading(true);
+    let refreshTimeoutId: NodeJS.Timeout;
+    let isMounted = true;
+
+    const fetchImagesAndUpdateState = async (isInitialLoad: boolean) => {
+      if (isInitialLoad) {
+        setIsLoading(true);
+      } else {
+        setIsRefreshing(true); // Indicate refresh is in progress
+      }
       setError(null);
+
       try {
-        const response = await fetch(`/api/portfolio-images?category=${category.toLowerCase()}&performSync=true`);
+        // The first call (isInitialLoad=true) triggers sync in background via performSync=true
+        // Subsequent calls (isInitialLoad=false, for refresh) omit performSync
+        const apiUrl = `/api/portfolio-images?category=${category.toLowerCase()}${isInitialLoad ? '&performSync=true' : ''}`;
+        const response = await fetch(apiUrl);
+
+        if (!isMounted) return; // Component unmounted during fetch
+
         if (!response.ok) {
           const errorData = await response.json().catch(() => ({ message: 'Failed to fetch images' }));
           throw new Error(errorData.error || `Failed to fetch images: ${response.statusText}`);
         }
         const data = await response.json();
-        setImages(data);
+        if (isMounted) {
+          setImages(data);
+        }
       } catch (err) {
-        console.error(`Error fetching images for ${category} gallery:`, err);
-        setError(err instanceof Error ? err.message : 'Failed to load images');
+        if (isMounted) {
+          console.error(`Error fetching images for ${category} gallery (initial: ${isInitialLoad}):`, err);
+          setError(err instanceof Error ? err.message : 'Failed to load images');
+        }
       } finally {
-        setIsLoading(false);
+        if (isMounted) {
+          if (isInitialLoad) {
+            setIsLoading(false);
+            // Schedule a refresh only after the initial load completes and sync has been triggered
+            console.log(`Scheduling refresh for ${category} in 15s`);
+            refreshTimeoutId = setTimeout(() => {
+              if (isMounted) { // Check if still mounted before refreshing
+                console.log(`Attempting refresh for ${category}`);
+                fetchImagesAndUpdateState(false); // Fetch again for refresh
+              }
+            }, 15000); // Refresh after 15 seconds
+          } else {
+            setIsRefreshing(false); // Refresh attempt finished
+          }
+        }
       }
     };
 
     if (category) {
-      fetchImages();
+      fetchImagesAndUpdateState(true); // Initial load and sync trigger
     }
-  }, [category]);
+
+    return () => {
+      isMounted = false;
+      clearTimeout(refreshTimeoutId); // Cleanup timeout on unmount
+    };
+  }, [category]); // Only re-run if category changes
 
   if (isLoading) {
     return (

@@ -3,6 +3,7 @@ import fs from 'fs';
 import path from 'path';
 import { google } from 'googleapis';
 import crypto from 'crypto';
+import { PortfolioImage } from '@/app/components/types';
 
 const PORTFOLIO_DIR = path.join(process.cwd(), 'public', 'portfolio_images');
 const CACHE_FILE = path.join(process.cwd(), '.sync-cache.json');
@@ -108,6 +109,35 @@ const downloadImage = async (fileId: string, destinationPath: string): Promise<v
     console.error(`Error initiating download for file ${fileId}:`, error);
     throw error;
   }
+};
+
+export const getLocalPortfolioImages = (categoryName: string): PortfolioImage[] => {
+  const categoryLower = categoryName.toLowerCase();
+  const categoryDir = path.join(PORTFOLIO_DIR, categoryLower);
+  const localImages: PortfolioImage[] = [];
+
+  if (!fs.existsSync(categoryDir)) {
+    console.warn(`Directory not found for category ${categoryLower} when fetching local images.`);
+    return [];
+  }
+
+  try {
+    const files = fs.readdirSync(categoryDir);
+    files.forEach(fileName => {
+      // Assuming filename is GDriveID.extension
+      const fileId = fileName.split('.')[0]; 
+      localImages.push({
+        id: fileId, // Use fileId from filename
+        src: `/portfolio_images/${categoryLower}/${fileName}`,
+        name: fileName, // Use the full filename as name for now
+        category: categoryLower,
+      });
+    });
+  } catch (error) {
+    console.error(`Error reading local image directory for ${categoryLower}:`, error);
+    return []; // Return empty or whatever was collected so far
+  }
+  return localImages;
 };
 
 // Check if files need to be synced for specific category or all

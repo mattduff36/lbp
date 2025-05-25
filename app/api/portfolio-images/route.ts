@@ -1,5 +1,4 @@
-import { getImagesByCategory } from '@/app/services/googleDrive';
-import { syncPortfolio } from '@/app/services/syncPortfolio';
+import { syncPortfolio, getLocalPortfolioImages } from '@/app/services/syncPortfolio';
 import { NextResponse } from 'next/server';
 
 export async function GET(request: Request) {
@@ -15,16 +14,22 @@ export async function GET(request: Request) {
   const categoryLower = category.toLowerCase();
 
   try {
-    if (performSync === 'true') {
-      console.log(`API route: Request received for category: ${categoryLower} WITH performSync=true. Triggering sync.`);
-      await syncPortfolio(categoryLower);
-      console.log(`API route: Sync attempt for category ${categoryLower} completed or skipped.`);
-    } else {
-      console.log(`API route: Request received for category: ${categoryLower} WITHOUT performSync=true. Skipping sync.`);
-    }
+    // Get local images first
+    let images = getLocalPortfolioImages(categoryLower);
+    console.log(`API route: Fetched ${images.length} local images for category ${categoryLower}.`);
 
-    const images = await getImagesByCategory(categoryLower);
-    console.log(`API route: Fetched ${images.length} images for category ${categoryLower}.`);
+    // If sync is requested, trigger it in the background
+    if (performSync === 'true') {
+      console.log(`API route: Request for category: ${categoryLower} WITH performSync=true. Triggering sync in background.`);
+      // No await here - let it run in the background
+      syncPortfolio(categoryLower).then(() => {
+        console.log(`API route: Background sync attempt for category ${categoryLower} completed or skipped.`);
+      }).catch(error => {
+        console.error(`API route: Background sync for category ${categoryLower} failed:`, error);
+      });
+    } else {
+      console.log(`API route: Request for category: ${categoryLower} WITHOUT performSync=true. Skipping sync trigger.`);
+    }
     
     if (limit) {
       const limitNum = parseInt(limit, 10);
