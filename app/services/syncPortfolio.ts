@@ -258,16 +258,16 @@ const syncCategory = async (
 };
 
 // Main sync function
-export const syncPortfolio = async (categoryToSyncName?: string) => {
+export const syncPortfolio = async (categoryToSyncName?: string): Promise<boolean> => {
   if (isSyncing) {
     console.log('Sync already in progress, skipping.');
-    return;
+    return false; // Sync did not run
   }
 
   const now = Date.now();
   if (now - lastSyncAttempt < SYNC_COOLDOWN) {
     console.log(`Global sync cooldown in effect (requested for ${categoryToSyncName || 'all'}). Skipping.`);
-    return;
+    return false; // Sync did not run
   }
 
   lastSyncAttempt = now;
@@ -276,23 +276,28 @@ export const syncPortfolio = async (categoryToSyncName?: string) => {
   console.log(`Attempting sync for ${syncTypeMessage}...`);
 
   try {
-    const needsSync = await checkSyncNeeded(categoryToSyncName);
-    if (!needsSync) {
-      console.log(`No changes detected for ${syncTypeMessage}, skipping sync.`);
-      isSyncing = false; // Release lock early
-      return;
+    const needsSyncCheckResult = await checkSyncNeeded(categoryToSyncName);
+    if (!needsSyncCheckResult) {
+      console.log(`No changes detected for ${syncTypeMessage}, skipping file operations.`);
+      // Considered a successful sync check, even if no files moved.
+      // Update lastSync time in cache if it was a specific category sync that was up-to-date.
+      if (categoryToSyncName) {
+        const cache = readCache();
+        cache.lastSync = Date.now(); // Reflect that this category was checked
+        writeCache(cache);
+      }
+      return true; 
     }
 
     console.log(`Changes detected for ${syncTypeMessage}, starting sync process...`);
     const structure = await getPortfolioStructure();
     if (!structure || structure.subfolders.length === 0) {
       console.error('Failed to get portfolio structure or no subfolders found. Aborting sync.');
-      isSyncing = false; // Release lock
-      return;
+      return false; // Sync could not proceed due to missing structure
     }
 
     ensurePortfolioDir();
-    const cache = readCache(); // Read cache once for this sync operation
+    const cache = readCache();
 
     const categoriesToProcess = categoryToSyncName
       ? structure.subfolders.filter(sf => sf.name.toLowerCase() === categoryToSyncName.toLowerCase())
@@ -300,18 +305,20 @@ export const syncPortfolio = async (categoryToSyncName?: string) => {
 
     if (categoryToSyncName && categoriesToProcess.length === 0) {
       console.warn(`Category "${categoryToSyncName}" not found in portfolio structure. Cannot sync.`);
+      return false; // Category to sync not found
     } else {
         for (const categoryData of categoriesToProcess) {
           console.log(`Syncing files for category: ${categoryData.name}`);
           await syncCategory(categoryData, cache);
         }
-        cache.lastSync = Date.now(); // Update timestamp after successful processing
-        writeCache(cache); // Write cache once after all relevant operations
+        cache.lastSync = Date.now();
+        writeCache(cache);
         console.log(`Portfolio sync completed for ${syncTypeMessage}.`);
+        return true; // Sync process completed
     }
-
   } catch (error) {
     console.error(`Error during portfolio sync for ${syncTypeMessage}:`, error);
+    return false; // Sync encountered an unhandled error
   } finally {
     isSyncing = false;
   }
