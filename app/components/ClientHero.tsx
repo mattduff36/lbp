@@ -52,8 +52,25 @@ export default function ClientHero() {
 
   if (loading) {
     return (
-      <div className="relative w-full h-[calc(100vh-4rem)] flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-gray-500"></div>
+      <div className="relative w-full h-[calc(100vh-4rem)] flex items-center justify-center bg-black">
+        <motion.div
+          initial={{ opacity: 0.5, scale: 0.95 }}
+          animate={{ opacity: [0.5, 1, 0.5], scale: [0.95, 1, 0.95] }}
+          transition={{
+            duration: 2,
+            repeat: Infinity,
+            ease: "easeInOut",
+          }}
+        >
+          <Image
+            src="/LBP Logo.png"
+            alt="Loading Lee Barrowcliff Photography Logo"
+            width={600}
+            height={200}
+            className="object-contain w-full h-auto"
+            priority
+          />
+        </motion.div>
       </div>
     );
   }
