@@ -15,7 +15,7 @@ export async function GET(request: Request) {
 
   try {
     // Get local images first
-    let images = getLocalPortfolioImages(categoryLower);
+    let images = await getLocalPortfolioImages(categoryLower);
     console.log(`API route: Fetched ${images.length} local images for category ${categoryLower}.`);
 
     // If sync is requested, trigger it in the background

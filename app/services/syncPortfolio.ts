@@ -1,297 +1,163 @@
 import { getPortfolioStructure, initializeDrive } from './googleDrive';
-import fs from 'fs';
-import path from 'path';
+import { uploadToBlob, deleteFromBlob, listBlobFiles } from './blobStorage';
 import { google } from 'googleapis';
 import crypto from 'crypto';
 import { PortfolioImage } from '@/app/components/types';
 
-const PORTFOLIO_DIR = path.join(process.cwd(), 'public', 'portfolio_images');
-const CACHE_FILE = path.join(process.cwd(), '.sync-cache.json');
 const SYNC_COOLDOWN = 60000; // 1 minute cooldown between any sync operations
+let isSyncing = false;
+let lastSyncAttempt = 0;
 
 interface SyncCache {
-  lastSync: number; // Timestamp of the last successful sync completion (any category or global)
+  lastSync: number;
   fileHashes: Record<string, string>;
 }
 
-let isSyncing = false; // Global flag to prevent concurrent sync operations
-let lastSyncAttempt = 0; // Timestamp of the last attempt to start a sync (any category or global)
-
-// Read cache file
-const readCache = (): SyncCache => {
-  try {
-    if (fs.existsSync(CACHE_FILE)) {
-      const cacheData = fs.readFileSync(CACHE_FILE, 'utf-8');
-      if (cacheData) {
-        return JSON.parse(cacheData);
-      }
-    }
-  } catch (error) {
-    console.error('Error reading cache:', error);
-  }
-  return { lastSync: 0, fileHashes: {} };
-};
-
-// Write cache file
-const writeCache = (cache: SyncCache) => {
-  try {
-    fs.writeFileSync(CACHE_FILE, JSON.stringify(cache, null, 2));
-  } catch (error) {
-    console.error('Error writing cache:', error);
-  }
-};
-
 // Calculate file hash
-const calculateFileHash = (filePath: string): string => {
+const calculateFileHash = (buffer: Buffer): string => {
+  return crypto.createHash('md5').update(buffer).digest('hex');
+};
+
+// Get existing files in blob storage
+const getExistingFiles = async (prefix: string): Promise<string[]> => {
   try {
-    const fileBuffer = fs.readFileSync(filePath);
-    return crypto.createHash('md5').update(fileBuffer).digest('hex');
+    const files = await listBlobFiles(prefix);
+    return files.map(file => file.pathname);
   } catch (error) {
-    return '';
-  }
-};
-
-// Ensure portfolio directory exists
-const ensurePortfolioDir = () => {
-  if (!fs.existsSync(PORTFOLIO_DIR)) {
-    fs.mkdirSync(PORTFOLIO_DIR, { recursive: true });
-  }
-};
-
-// Ensure category directory exists
-const ensureCategoryDir = (category: string) => {
-  const categoryDir = path.join(PORTFOLIO_DIR, category.toLowerCase());
-  if (!fs.existsSync(categoryDir)) {
-    fs.mkdirSync(categoryDir, { recursive: true });
-  }
-};
-
-// Get existing files in a directory
-const getExistingFiles = (dir: string): string[] => {
-  try {
-    if (!fs.existsSync(dir)) return [];
-    return fs.readdirSync(dir);
-  } catch (error) {
-    console.error(`Error reading directory ${dir}:`, error);
+    console.error(`Error reading blob storage for prefix ${prefix}:`, error);
     return [];
   }
 };
 
 // Download image from Google Drive using the API
-const downloadImage = async (fileId: string, destinationPath: string): Promise<void> => {
+const downloadImage = async (fileId: string): Promise<Buffer> => {
   try {
     const drive = await initializeDrive();
     const response = await drive.files.get(
       { fileId, alt: 'media' },
-      { responseType: 'stream' }
+      { responseType: 'arraybuffer' }
     );
-
-    return new Promise((resolve, reject) => {
-      const fileStream = fs.createWriteStream(destinationPath);
-      response.data
-        .on('error', (err: any) => {
-          console.error(`Stream error downloading ${fileId} to ${destinationPath}:`, err);
-          fs.unlink(destinationPath, () => {}); // Clean up partially downloaded file
-          reject(err);
-        })
-        .pipe(fileStream)
-        .on('error', (err: any) => { // Handle errors on the write stream as well
-          console.error(`File stream error for ${destinationPath}:`, err);
-          fs.unlink(destinationPath, () => {});
-          reject(err);
-        })
-        .on('finish', () => {
-          console.log(`Downloaded: ${destinationPath}`);
-          resolve();
-        });
-    });
+    return Buffer.from(response.data as ArrayBuffer);
   } catch (error) {
-    console.error(`Error initiating download for file ${fileId}:`, error);
+    console.error(`Error downloading file ${fileId}:`, error);
     throw error;
   }
 };
 
-export const getLocalPortfolioImages = (categoryName: string): PortfolioImage[] => {
+export const getLocalPortfolioImages = async (categoryName: string): Promise<PortfolioImage[]> => {
   const categoryLower = categoryName.toLowerCase();
-  const categoryDir = path.join(PORTFOLIO_DIR, categoryLower);
-  const localImages: PortfolioImage[] = [];
-
-  if (!fs.existsSync(categoryDir)) {
-    console.warn(`Directory not found for category ${categoryLower} when fetching local images.`);
-    return [];
-  }
+  const prefix = `portfolio_images/${categoryLower}/`;
 
   try {
-    const files = fs.readdirSync(categoryDir);
-    files.forEach(fileName => {
-      // Assuming filename is GDriveID.extension
-      const fileId = fileName.split('.')[0]; 
-      localImages.push({
-        id: fileId, // Use fileId from filename
-        src: `/portfolio_images/${categoryLower}/${fileName}`,
-        name: fileName, // Use the full filename as name for now
+    const files = await listBlobFiles(prefix);
+    return files.map(file => {
+      const fileName = file.pathname.split('/').pop() || '';
+      const fileId = fileName.split('.')[0];
+      return {
+        id: fileId,
+        src: file.url,
+        name: fileName,
         category: categoryLower,
-      });
+      };
     });
   } catch (error) {
-    console.error(`Error reading local image directory for ${categoryLower}:`, error);
-    return []; // Return empty or whatever was collected so far
+    console.error(`Error reading blob storage for category ${categoryLower}:`, error);
+    return [];
   }
-  return localImages;
 };
 
-// Check if files need to be synced for specific category or all
 export const checkSyncNeeded = async (categoryName?: string): Promise<boolean> => {
   try {
-    const cache = readCache(); // Read cache for current hashes
     const structure = await getPortfolioStructure();
     if (!structure || structure.subfolders.length === 0) {
-        console.log('No portfolio structure found or no subfolders to check.');
-        return false;
+      console.error('Failed to get portfolio structure or no subfolders found.');
+      return false;
     }
 
     const categoriesToCheck = categoryName
       ? structure.subfolders.filter(sf => sf.name.toLowerCase() === categoryName.toLowerCase())
       : structure.subfolders;
 
-    if (categoryName && categoriesToCheck.length === 0) {
-      console.warn(`Category "${categoryName}" not found in portfolio structure for sync check.`);
-      return false; // Category to check doesn't exist
-    }
-    if (categoriesToCheck.length === 0 && !categoryName) {
-        console.log('No categories to check for sync.');
-        return false;
-    }
-
-
     for (const category of categoriesToCheck) {
       const currentCategoryNameLower = category.name.toLowerCase();
-      const categoryDir = path.join(PORTFOLIO_DIR, currentCategoryNameLower);
-      ensureCategoryDir(currentCategoryNameLower); // Ensure dir exists before reading
-      const existingLocalFiles = getExistingFiles(categoryDir);
+      const prefix = `portfolio_images/${currentCategoryNameLower}/`;
+      const existingFiles = await getExistingFiles(prefix);
       
       const driveFileMap = new Map(category.files.map(f => {
         const ext = f.name.split('.').pop()?.toLowerCase() || 'jpg';
-        return [f.id, `${f.id}.${ext}`]; // Store ID to filename mapping
+        return [f.id, `${prefix}${f.id}.${ext}`];
       }));
-      const driveFileNames = new Set(driveFileMap.values());
-      const localFileNames = new Set(existingLocalFiles);
+      
+      const driveFilePaths = new Set(driveFileMap.values());
+      const localFilePaths = new Set(existingFiles);
 
-      // Check for new files in Drive or files missing locally
-      for (const driveFileName of driveFileNames) {
-        if (!localFileNames.has(driveFileName)) {
-          console.log(`Sync needed: New/missing file ${driveFileName} in category ${currentCategoryNameLower}`);
-          return true;
-        }
-      }
-
-      // Check for local files not in Drive (to be deleted) or changed hashes
-      for (const localFile of existingLocalFiles) {
-        const localFilePath = path.join(categoryDir, localFile);
-        const fileIdFromLocalName = localFile.split('.')[0];
-
-        if (!driveFileMap.has(fileIdFromLocalName)) {
-          console.log(`Sync needed: Local file ${localFile} no longer in Drive for category ${currentCategoryNameLower}`);
-          return true; // Local file to be removed
-        }
-        
-        // If file exists in both, check hash
-        const currentHash = calculateFileHash(localFilePath);
-        const cachedHash = cache.fileHashes[localFilePath];
-        if (!currentHash) { // Hash calculation failed, might indicate file issue
-            console.warn(`Could not calculate hash for ${localFilePath}, assuming sync is needed.`);
-            return true;
-        }
-        if (currentHash !== cachedHash) {
-          console.log(`Sync needed: Hash mismatch for ${localFile} in category ${currentCategoryNameLower}`);
+      for (const driveFilePath of driveFilePaths) {
+        if (!localFilePaths.has(driveFilePath)) {
+          console.log(`Sync needed: New/missing file ${driveFilePath}`);
           return true;
         }
       }
     }
-    
-    return false; // No changes detected in the checked categories
+
+    return false;
   } catch (error) {
-    console.error('Error checking sync status:', error);
-    return true; // Assume sync is needed if error occurs during check
+    console.error('Error checking if sync is needed:', error);
+    return false;
   }
 };
 
-// Sync a single category, updates the passed cache object
-const syncCategory = async (
-    categoryData: { name: string; files: Array<{id: string, name: string}> },
-    cache: SyncCache
-) => {
+// Sync a single category
+const syncCategory = async (categoryData: { name: string; files: Array<{id: string, name: string}> }) => {
   const categoryNameLower = categoryData.name.toLowerCase();
-  ensureCategoryDir(categoryNameLower);
-  const categoryDir = path.join(PORTFOLIO_DIR, categoryNameLower);
-  const existingLocalFiles = getExistingFiles(categoryDir);
-  const localFileNamesSet = new Set(existingLocalFiles);
+  const prefix = `portfolio_images/${categoryNameLower}/`;
+  const existingFiles = await getExistingFiles(prefix);
+  const localFilePathsSet = new Set(existingFiles);
 
   const driveFilesToProcess = new Map<string, {id: string, name: string}>();
   categoryData.files.forEach(f => {
-      const ext = f.name.split('.').pop()?.toLowerCase() || 'jpg';
-      const fileNameOnDisk = `${f.id}.${ext}`;
-      driveFilesToProcess.set(fileNameOnDisk, f);
+    const ext = f.name.split('.').pop()?.toLowerCase() || 'jpg';
+    const filePath = `${prefix}${f.id}.${ext}`;
+    driveFilesToProcess.set(filePath, f);
   });
 
-  // Download new or changed files
-  for (const [fileNameOnDisk, driveFile] of driveFilesToProcess) {
-    const filePath = path.join(categoryDir, fileNameOnDisk);
-    let needsDownload = !localFileNamesSet.has(fileNameOnDisk);
-
-    if (!needsDownload) { // File exists, check hash
-      const currentHash = calculateFileHash(filePath);
-      if (!currentHash || currentHash !== cache.fileHashes[filePath]) {
-        console.log(`Hash mismatch or missing hash for ${filePath}, re-downloading.`);
-        needsDownload = true;
-      }
-    }
-
-    if (needsDownload) {
-      console.log(`Processing file for ${categoryNameLower}: ${driveFile.name} (ID: ${driveFile.id}) as ${fileNameOnDisk}`);
+  // Download and upload new or changed files
+  for (const [filePath, driveFile] of driveFilesToProcess) {
+    if (!localFilePathsSet.has(filePath)) {
+      console.log(`Processing file for ${categoryNameLower}: ${driveFile.name} (ID: ${driveFile.id}) as ${filePath}`);
       try {
-        await downloadImage(driveFile.id, filePath);
-        const newHash = calculateFileHash(filePath);
-        if (newHash) {
-            cache.fileHashes[filePath] = newHash;
-        } else {
-            console.warn(`Could not calculate hash for newly downloaded file ${filePath}. Cache not updated for this file.`);
-        }
+        const fileBuffer = await downloadImage(driveFile.id);
+        await uploadToBlob(fileBuffer, filePath);
+        console.log(`Uploaded: ${filePath}`);
       } catch (error) {
-        console.error(`Error downloading ${driveFile.name} (ID: ${driveFile.id}):`, error);
-        // If download fails, ensure no stale hash in cache for this path
-        delete cache.fileHashes[filePath];
+        console.error(`Error processing ${driveFile.name} (ID: ${driveFile.id}):`, error);
       }
     }
   }
 
-  // Remove local files that no longer exist in Drive for this category
-  for (const localFileName of existingLocalFiles) {
-    if (!driveFilesToProcess.has(localFileName)) {
-      const filePath = path.join(categoryDir, localFileName);
+  // Remove files that no longer exist in Drive
+  for (const localFilePath of existingFiles) {
+    if (!driveFilesToProcess.has(localFilePath)) {
       try {
-        fs.unlinkSync(filePath);
-        delete cache.fileHashes[filePath];
-        console.log(`Removed: ${filePath}`);
+        await deleteFromBlob(localFilePath);
+        console.log(`Removed: ${localFilePath}`);
       } catch (error) {
-        console.error(`Error removing file ${filePath}:`, error);
+        console.error(`Error removing file ${localFilePath}:`, error);
       }
     }
   }
-  // Cache is written by syncPortfolio after all categories (if global) or this category (if specific)
 };
 
 // Main sync function
 export const syncPortfolio = async (categoryToSyncName?: string): Promise<boolean> => {
   if (isSyncing) {
     console.log('Sync already in progress, skipping.');
-    return false; // Sync did not run
+    return false;
   }
 
   const now = Date.now();
   if (now - lastSyncAttempt < SYNC_COOLDOWN) {
     console.log(`Global sync cooldown in effect (requested for ${categoryToSyncName || 'all'}). Skipping.`);
-    return false; // Sync did not run
+    return false;
   }
 
   lastSyncAttempt = now;
@@ -303,25 +169,15 @@ export const syncPortfolio = async (categoryToSyncName?: string): Promise<boolea
     const needsSyncCheckResult = await checkSyncNeeded(categoryToSyncName);
     if (!needsSyncCheckResult) {
       console.log(`No changes detected for ${syncTypeMessage}, skipping file operations.`);
-      // Considered a successful sync check, even if no files moved.
-      // Update lastSync time in cache if it was a specific category sync that was up-to-date.
-      if (categoryToSyncName) {
-        const cache = readCache();
-        cache.lastSync = Date.now(); // Reflect that this category was checked
-        writeCache(cache);
-      }
-      return true; 
+      return true;
     }
 
     console.log(`Changes detected for ${syncTypeMessage}, starting sync process...`);
     const structure = await getPortfolioStructure();
     if (!structure || structure.subfolders.length === 0) {
       console.error('Failed to get portfolio structure or no subfolders found. Aborting sync.');
-      return false; // Sync could not proceed due to missing structure
+      return false;
     }
-
-    ensurePortfolioDir();
-    const cache = readCache();
 
     const categoriesToProcess = categoryToSyncName
       ? structure.subfolders.filter(sf => sf.name.toLowerCase() === categoryToSyncName.toLowerCase())
@@ -329,20 +185,19 @@ export const syncPortfolio = async (categoryToSyncName?: string): Promise<boolea
 
     if (categoryToSyncName && categoriesToProcess.length === 0) {
       console.warn(`Category "${categoryToSyncName}" not found in portfolio structure. Cannot sync.`);
-      return false; // Category to sync not found
-    } else {
-        for (const categoryData of categoriesToProcess) {
-          console.log(`Syncing files for category: ${categoryData.name}`);
-          await syncCategory(categoryData, cache);
-        }
-        cache.lastSync = Date.now();
-        writeCache(cache);
-        console.log(`Portfolio sync completed for ${syncTypeMessage}.`);
-        return true; // Sync process completed
+      return false;
     }
+
+    for (const categoryData of categoriesToProcess) {
+      console.log(`Syncing files for category: ${categoryData.name}`);
+      await syncCategory(categoryData);
+    }
+
+    console.log(`Portfolio sync completed for ${syncTypeMessage}.`);
+    return true;
   } catch (error) {
     console.error(`Error during portfolio sync for ${syncTypeMessage}:`, error);
-    return false; // Sync encountered an unhandled error
+    return false;
   } finally {
     isSyncing = false;
   }
