@@ -17,12 +17,32 @@ export default function ContactForm() {
     e.preventDefault()
     setStatus('sending')
 
-    // Simulate form submission
     try {
-      await new Promise(resolve => setTimeout(resolve, 1000))
-      setStatus('success')
-      setFormData({ name: '', email: '', message: '' })
+      const response = await fetch('https://api.web3forms.com/submit', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify({
+          access_key: 'bd2c6efb-ee8d-492a-92a6-6b7fcb38303f',
+          name: formData.name,
+          email: formData.email,
+          message: formData.message,
+          botcheck: false
+        })
+      })
+
+      const result = await response.json()
+
+      if (result.success) {
+        setStatus('success')
+        setFormData({ name: '', email: '', message: '' })
+      } else {
+        throw new Error(result.message || 'Something went wrong')
+      }
     } catch (error) {
+      console.error('Form submission error:', error)
       setStatus('error')
     }
   }
@@ -89,6 +109,12 @@ export default function ContactForm() {
       </div>
 
       <div>
+        <input
+          type="checkbox"
+          name="botcheck"
+          className="hidden"
+          style={{ display: 'none' }}
+        />
         <button
           type="submit"
           disabled={status === 'sending'}
