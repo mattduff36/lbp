@@ -16,6 +16,8 @@ export interface PortfolioImage {
   src: string;
   name: string;
   category: string;
+  width?: number;
+  height?: number;
 }
 
 export interface GalleryImage {
