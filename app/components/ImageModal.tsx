@@ -74,8 +74,12 @@ const ImageModal = ({ image, onClose, onNext, onPrevious, hasNext, hasPrevious }
       )}
 
       <div 
-        className="relative w-full h-5/6 max-w-5xl max-h-5/6 flex items-center justify-center p-4"
+        className="relative w-full h-5/6 max-w-5xl max-h-5/6 flex items-center justify-center p-4 cursor-pointer"
         onContextMenu={(e) => e.preventDefault()}
+        onClick={(e) => { 
+          e.stopPropagation(); // Prevent click from bubbling to the main backdrop div's onClick
+          onClose(); 
+        }}
       >
         <Image
           src={image.src}
