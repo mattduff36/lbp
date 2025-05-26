@@ -18,9 +18,8 @@ const GalleryPreview: React.FC<GalleryPreviewProps> = ({ name, path, previewImag
         <Image
           src={previewImageSrc}
           alt={`Preview of ${name} gallery`}
-          layout="fill"
-          objectFit="cover"
-          className="group-hover:scale-105 transition-transform duration-300 ease-in-out"
+          fill
+          className="object-cover group-hover:scale-105 transition-transform duration-300 ease-in-out"
         />
       ) : (
         <div className="w-full h-full bg-gray-800 flex flex-col items-center justify-center">

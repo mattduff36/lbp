@@ -7,8 +7,12 @@ export async function GET(request: Request) {
   const limit = searchParams.get('limit');
   const performSync = searchParams.get('performSync');
 
+  const headers = {
+    'Cache-Control': 'no-store, max-age=0, must-revalidate',
+  };
+
   if (!category) {
-    return NextResponse.json({ error: 'Category is required' }, { status: 400 });
+    return NextResponse.json({ error: 'Category is required' }, { status: 400, headers });
   }
 
   const categoryLower = category.toLowerCase();
@@ -34,14 +38,14 @@ export async function GET(request: Request) {
     if (limit) {
       const limitNum = parseInt(limit, 10);
       if (isNaN(limitNum)) {
-        return NextResponse.json({ error: 'Invalid limit parameter' }, { status: 400 });
+        return NextResponse.json({ error: 'Invalid limit parameter' }, { status: 400, headers });
       }
-      return NextResponse.json(images.slice(0, limitNum));
+      return NextResponse.json(images.slice(0, limitNum), { headers });
     }
 
-    return NextResponse.json(images);
+    return NextResponse.json(images, { headers });
   } catch (error) {
     console.error(`API route: Error processing request for category ${categoryLower}:`, error);
-    return NextResponse.json({ error: 'Failed to fetch images' }, { status: 500 });
+    return NextResponse.json({ error: 'Failed to fetch images' }, { status: 500, headers });
   }
 } 

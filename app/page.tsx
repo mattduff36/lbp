@@ -3,15 +3,9 @@ import AnimatedPortfolio from './components/AnimatedPortfolio';
 // import fs from 'fs'; // No longer needed for getPreviewImageSrc
 import path from 'path'; // Still potentially needed if other parts use it, but not for getPreviewImageSrc
 import { list } from '@vercel/blob'; // Added for Vercel Blob Storage
+import { GALLERIES } from '@/app/config/galleries'; // Import shared config
 
-const galleries = [
-  { name: 'Wedding', path: '/portfolio/wedding', localDir: 'wedding' },
-  { name: 'Portrait', path: '/portfolio/portrait', localDir: 'portrait' },
-  { name: 'Lifestyle', path: '/portfolio/lifestyle', localDir: 'lifestyle' },
-  { name: 'Landscape', path: '/portfolio/landscape', localDir: 'landscape' },
-  { name: 'Animals', path: '/portfolio/animals', localDir: 'animals' },
-  { name: 'Sport', path: '/portfolio/sport', localDir: 'sport' },
-];
+// const galleries = [...] // This is now imported
 
 const getPreviewImageSrc = async (categoryDir: string): Promise<string | null> => {
   const pathnamePrefix = `portfolio_images/${categoryDir.toLowerCase()}/`;
@@ -50,7 +44,7 @@ const getPreviewImageSrc = async (categoryDir: string): Promise<string | null> =
 };
 
 export default async function Home() {
-  const galleriesWithPreviewsPromises = galleries.map(async (gallery) => ({
+  const galleriesWithPreviewsPromises = GALLERIES.map(async (gallery) => ({
     ...gallery,
     previewImageSrc: await getPreviewImageSrc(gallery.localDir),
   }));
