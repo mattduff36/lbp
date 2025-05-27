@@ -11,7 +11,8 @@ const HERO_BLOB_PREFIX = 'hero_images/';
 
 // Cache file remains, but its content/meaning will change slightly
 const HERO_CACHE_FILE = path.join(process.cwd(), '.hero-sync-cache.json');
-const HERO_SYNC_COOLDOWN = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
+// const HERO_SYNC_COOLDOWN = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
+const HERO_SYNC_COOLDOWN = 0; // Temporarily set to 0 for debugging
 // const HERO_SYNC_COOLDOWN = 3600000; // 1 hour in milliseconds
 // const HERO_SYNC_COOLDOWN = 0; // Temporarily set to 0 for debugging
 
@@ -110,11 +111,14 @@ export const syncHeroImages = async (): Promise<boolean> => {
     });
 
     // 2. Get list of current hero images from Vercel Blob
+    console.log(`[syncHeroImages] About to list blob files with prefix: ${HERO_BLOB_PREFIX}`);
     const existingBlobObjects: BlobImage[] = await listBlobFiles(HERO_BLOB_PREFIX);
+    console.log(`[syncHeroImages] Raw existingBlobObjects from listBlobFiles:`, JSON.stringify(existingBlobObjects, null, 2));
     
     const existingBlobMap = new Map<string, BlobImage>(); // blobPathname: BlobImage (from our type)
-    if (existingBlobObjects) { // Add a check for safety, though listBlobFiles should return [] or throw
+    if (existingBlobObjects) { 
         existingBlobObjects.forEach(blob => existingBlobMap.set(blob.pathname, blob));
+        console.log(`[syncHeroImages] Populated existingBlobMap. Size: ${existingBlobMap.size}. Keys: ${JSON.stringify(Array.from(existingBlobMap.keys()))}`);
         // console.log(`Found ${existingBlobObjects.length} images in Vercel Blob at prefix ${HERO_BLOB_PREFIX}.`);
     } else {
         console.log(`No images found or an issue occurred while listing from Vercel Blob at prefix ${HERO_BLOB_PREFIX}. Assuming empty.`);
