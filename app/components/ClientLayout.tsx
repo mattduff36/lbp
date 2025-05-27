@@ -99,6 +99,7 @@ export default function ClientLayout({ children }: ClientLayoutProps) {
                             key={gallery.path}
                             href={gallery.path}
                             className="block px-4 py-2 text-sm text-gray-300 hover:text-white hover:bg-gray-900"
+                            onClick={() => setIsDropdownOpen(false)}
                           >
                             {gallery.name}
                           </Link>
