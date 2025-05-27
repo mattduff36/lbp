@@ -90,15 +90,15 @@ export default function ClientHero() {
 
   return (
     <div 
-      className="relative w-full h-[calc(100vh-4rem)] overflow-hidden cursor-pointer"
+      className="relative w-full h-[calc(100dvh-4rem)] overflow-hidden cursor-pointer"
       onClick={handleImageClick}
     >
       <AnimatePresence initial={false}>
         <motion.div
           key={currentIndex}
-          initial={{ opacity: 0, position: 'absolute', inset: 0 }}
-          animate={{ opacity: 1, transition: { duration: 1.5, ease: "easeInOut" } }}
-          exit={{ opacity: 0, transition: { duration: 1.5, ease: "easeInOut" } }}
+          initial={{ opacity: 0, zIndex: 0, position: 'absolute', inset: 0 }}
+          animate={{ opacity: 1, zIndex: 1, transition: { duration: 1.5, ease: "easeInOut" } }}
+          exit={{ opacity: 0, zIndex: 0, transition: { duration: 1.5, ease: "easeInOut" } }}
         >
           <Image
             src={images[currentIndex].src}
