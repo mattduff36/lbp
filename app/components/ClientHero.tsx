@@ -90,7 +90,7 @@ export default function ClientHero() {
 
   return (
     <div 
-      className="relative w-full h-[calc(100dvh-4rem)] overflow-hidden cursor-pointer"
+      className="relative w-full h-[calc(100svh-4rem)] overflow-hidden cursor-pointer touch-action-pan-y"
       onClick={handleImageClick}
     >
       <AnimatePresence initial={false}>
