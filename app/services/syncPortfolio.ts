@@ -4,7 +4,7 @@ import { google } from 'googleapis';
 import crypto from 'crypto';
 import { PortfolioImage } from '@/app/components/types';
 
-const SYNC_COOLDOWN = 60000; // 1 minute cooldown between any sync operations
+const SYNC_COOLDOWN = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
 let isSyncing = false;
 let lastSyncAttempt = 0;
 

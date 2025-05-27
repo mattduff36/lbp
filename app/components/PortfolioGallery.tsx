@@ -70,7 +70,7 @@ const PortfolioGallery = ({ category, title }: PortfolioGalleryProps) => {
       setImages([]);
 
       try {
-        const apiUrl = `/api/portfolio-images?category=${category.toLowerCase()}&performSync=true`;
+        const apiUrl = `/api/portfolio-images?category=${category.toLowerCase()}`;
         const response = await fetch(apiUrl);
 
         if (!isMounted) return;

@@ -15,7 +15,11 @@
   "crons": [
     {
       "path": "/api/cron/sync-all-portfolio?secret=z9KxPqRt7Wn2SdFgVbHc3JmGu5LoA8vY",
-      "schedule": "0 * * * *"
+      "schedule": "0 0 * * *"
+    },
+    {
+      "path": "/api/cron/sync-hero?secret=z9KxPqRt7Wn2SdFgVbHc3JmGu5LoA8vY",
+      "schedule": "0 1 * * *"
     }
   ]
 } 
