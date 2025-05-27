@@ -217,34 +217,39 @@ const PortfolioGallery = ({ category, title }: PortfolioGalleryProps) => {
         >
           {title}
         </motion.h1>
-        <motion.div 
-          className={masonryLayoutClasses}
-          variants={gridContainerVariants}
-        >
-          {images.map((image, index) => (
-            <motion.div
-              key={`${image.id}-${index}`}
-              className="relative group overflow-hidden mb-4 break-inside-avoid cursor-pointer"
-              onClick={() => handleOpenModal(image, index)}
-              onKeyDown={(e) => e.key === 'Enter' && handleOpenModal(image, index)}
-              tabIndex={0}
-              role="button"
-              aria-label={`View image ${image.name}`}
-              variants={gridItemVariants}
-            >
-              <Image
-                src={image.src}
-                alt={image.name}
-                width={image.width || 400}
-                height={image.height || 300}
-                className="object-cover w-full h-auto transition-transform duration-300 ease-in-out group-hover:scale-110"
-                sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
-                priority={index < 8}
-              />
-               <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-            </motion.div>
-          ))}
-        </motion.div>
+        
+        {!isLoading && !error && images.length > 0 && (
+          <motion.div 
+            className={masonryLayoutClasses}
+            variants={gridContainerVariants}
+            initial="hidden"
+            animate="visible"
+          >
+            {images.map((image, index) => (
+              <motion.div
+                key={`${image.id}-${index}`}
+                className="relative group overflow-hidden mb-4 break-inside-avoid cursor-pointer"
+                onClick={() => handleOpenModal(image, index)}
+                onKeyDown={(e) => e.key === 'Enter' && handleOpenModal(image, index)}
+                tabIndex={0}
+                role="button"
+                aria-label={`View image ${image.name}`}
+                variants={gridItemVariants}
+              >
+                <Image
+                  src={image.src}
+                  alt={image.name}
+                  width={image.width || 400}
+                  height={image.height || 300}
+                  className="object-cover w-full h-auto transition-transform duration-300 ease-in-out group-hover:scale-110"
+                  sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                  priority={index < 8}
+                />
+                 <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+              </motion.div>
+            ))}
+          </motion.div>
+        )}
       </div>
       <AnimatePresence>
         {selectedImage && selectedImageIndex !== null && (
