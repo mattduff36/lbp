@@ -1,42 +1,41 @@
 import { NextResponse } from 'next/server';
-import fs from 'fs';
-import path from 'path';
 import { syncHeroImages } from '@/app/services/syncHeroImages';
+import { listBlobFiles } from '@/app/services/blobStorage'; // Import for Vercel Blob
+import type { HeroImage } from '@/app/components/types'; // Assuming HeroImage type is defined here
+
+const HERO_BLOB_PREFIX = 'hero_images/';
 
 export async function GET() {
   // Trigger sync in the background - fire and forget
+  // This will now sync with Vercel Blob
   syncHeroImages().catch(error => {
-    // Log errors from the background sync, but don't let it block the response
-    console.error('Background hero image sync failed:', error);
+    console.error('Background hero image sync with Vercel Blob failed:', error);
   });
 
   try {
-    const heroImagesDir = path.join(process.cwd(), 'public', 'hero_images');
-    // Ensure directory exists before trying to read it, especially if sync hasn't run yet
-    if (!fs.existsSync(heroImagesDir)) {
-      fs.mkdirSync(heroImagesDir, { recursive: true });
-      console.log('Hero images directory created as it did not exist.');
-      return NextResponse.json({ images: [] }); // Return empty if dir was just created
+    const { blobs } = await listBlobFiles(HERO_BLOB_PREFIX);
+
+    if (!blobs || blobs.length === 0) {
+      console.log('No hero images found in Vercel Blob.');
+      return NextResponse.json({ images: [] });
     }
 
-    const files = fs.readdirSync(heroImagesDir);
-    
-    const images = files
-      .filter(file => /\.(jpg|jpeg|png|gif|webp)$/i.test(file))
-      .map((file, index) => ({
-        id: index,
-        src: `/hero_images/${file}`,
-        alt: `Hero background ${index + 1}`
+    const images: HeroImage[] = blobs
+      .filter(blob => blob.pathname && /\.(jpg|jpeg|png|gif|webp)$/i.test(blob.pathname))
+      .map((blob, index) => ({
+        // Use a simple index for ID, or derive from blob.pathname if a more persistent ID is needed
+        // For client-side keying, index should be okay if order is stable or not critical.
+        // If blobs are not guaranteed to be listed in a consistent order, 
+        // a more stable ID (e.g., derived from pathname) might be better.
+        id: index, 
+        src: blob.url, // Use the Vercel Blob URL
+        alt: `Hero background ${index + 1}`,
+        // name: blob.pathname.split('/').pop() || 'hero-image', // Optionally include name
       }));
 
     return NextResponse.json({ images });
   } catch (error) {
-    console.error('Error reading hero images:', error);
-    // If directory doesn't exist or other read error, return empty array gracefully
-    if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
-        console.warn('Hero images directory not found during GET request. Returning empty array.');
-        return NextResponse.json({ images: [] });
-    }
+    console.error('Error reading hero images from Vercel Blob:', error);
     return NextResponse.json({ error: 'Failed to read hero images' }, { status: 500 });
   }
 } 

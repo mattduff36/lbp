@@ -1,37 +1,47 @@
-import fs from 'fs';
-import path from 'path';
 import { google } from 'googleapis';
 import crypto from 'crypto';
-import { initializeDrive } from './googleDrive'; // Will need this for downloadImage
+import { initializeDrive, getHeroImages as getDriveHeroImages } from './googleDrive';
+import { uploadToBlob, deleteFromBlob, listBlobFiles } from './blobStorage'; // Import blob functions
+import { BlobListResultBlob } from '@vercel/blob'; // Import type for list results
+import fs from 'fs';
+import path from 'path';
 
-const HERO_IMAGES_DIR = path.join(process.cwd(), 'public', 'hero_images');
+// Define a prefix for hero images in Vercel Blob
+const HERO_BLOB_PREFIX = 'hero_images/';
+
+// Cache file remains, but its content/meaning will change slightly
 const HERO_CACHE_FILE = path.join(process.cwd(), '.hero-sync-cache.json');
 const HERO_SYNC_COOLDOWN = 3600000; // 1 hour in milliseconds
 
 interface HeroSyncCache {
   lastSync: number;
-  fileHashes: Record<string, string>; // filePath: hash
+  // Stores Google Drive file ID for each Blob pathname to detect if re-upload is needed.
+  // We assume if GDrive ID for a given name changes, it's a new file or needs update.
+  // A more robust solution might involve etags or lastModified from GDrive if available & reliable.
+  blobFiles: Record<string, { driveId: string; pathname: string }>; // blobPathname: { driveId, pathname }
 }
 
 let isHeroSyncing = false;
 let lastHeroSyncAttempt = 0;
 
-// Read hero cache file
+// Read hero cache file (structure updated)
 const readHeroCache = (): HeroSyncCache => {
   try {
     if (fs.existsSync(HERO_CACHE_FILE)) {
       const cacheData = fs.readFileSync(HERO_CACHE_FILE, 'utf-8');
       if (cacheData) {
-        return JSON.parse(cacheData);
+        const parsed = JSON.parse(cacheData);
+        // Ensure 'blobFiles' property exists
+        return { lastSync: parsed.lastSync || 0, blobFiles: parsed.blobFiles || {} };
       }
     }
   } catch (error) {
     console.error('Error reading hero sync cache:', error);
   }
-  return { lastSync: 0, fileHashes: {} };
+  return { lastSync: 0, blobFiles: {} };
 };
 
-// Write hero cache file
+// Write hero cache file (structure updated)
 const writeHeroCache = (cache: HeroSyncCache) => {
   try {
     fs.writeFileSync(HERO_CACHE_FILE, JSON.stringify(cache, null, 2));
@@ -40,171 +50,126 @@ const writeHeroCache = (cache: HeroSyncCache) => {
   }
 };
 
-// Ensure hero images directory exists
-const ensureHeroImagesDir = () => {
-  if (!fs.existsSync(HERO_IMAGES_DIR)) {
-    fs.mkdirSync(HERO_IMAGES_DIR, { recursive: true });
-  }
-};
+// No longer need ensureHeroImagesDir or calculateFileHash for local files
 
-// --- Helper utilities (will be copied or imported) ---
-// Calculate file hash
-const calculateFileHash = (filePath: string): string => {
+// Download image from Google Drive as Buffer
+const downloadImageAsBuffer = async (fileId: string): Promise<Buffer> => {
   try {
-    const fileBuffer = fs.readFileSync(filePath);
-    return crypto.createHash('md5').update(fileBuffer).digest('hex');
-  } catch (error) {
-    // console.error(`Error calculating hash for ${filePath}:`, error);
-    return ''; // Return empty string if hash calculation fails
-  }
-};
-
-// Download image from Google Drive using the API
-const downloadImage = async (fileId: string, destinationPath: string): Promise<void> => {
-  try {
-    const drive = await initializeDrive();
+    const drive = await initializeDrive(); // Correctly get the drive instance
     const response = await drive.files.get(
       { fileId, alt: 'media' },
-      { responseType: 'stream' }
+      { responseType: 'arraybuffer' }
     );
-
-    return new Promise((resolve, reject) => {
-      const fileStream = fs.createWriteStream(destinationPath);
-      response.data
-        .on('error', (err: any) => {
-          console.error(`Stream error downloading ${fileId} to ${destinationPath}:`, err);
-          fs.unlink(destinationPath, () => {}); // Clean up partially downloaded file
-          reject(err);
-        })
-        .pipe(fileStream)
-        .on('error', (err: any) => { // Handle errors on the write stream as well
-          console.error(`File stream error for ${destinationPath}:`, err);
-          fs.unlink(destinationPath, () => {});
-          reject(err);
-        })
-        .on('finish', () => {
-          console.log(`Downloaded Hero Image: ${destinationPath}`);
-          resolve();
-        });
-    });
+    return Buffer.from(response.data as ArrayBuffer);
   } catch (error) {
-    console.error(`Error initiating download for hero image file ${fileId}:`, error);
-    throw error;
+    console.error(`Error downloading file ${fileId} from Google Drive:`, error);
+    throw error; // Re-throw to be caught by caller
   }
 };
 
-// Main sync function for hero images
+// Main sync function for hero images (rewritten for Vercel Blob)
 export const syncHeroImages = async (): Promise<boolean> => {
   if (isHeroSyncing) {
     console.log('Hero image sync already in progress, skipping.');
-    return false; 
+    return false;
   }
 
   const now = Date.now();
   if (now - lastHeroSyncAttempt < HERO_SYNC_COOLDOWN) {
-    console.log(`Hero image sync cooldown in effect. Last attempt: ${new Date(lastHeroSyncAttempt).toISOString()}. Skipping.`);
-    return false; 
+    console.log(`Hero image sync cooldown. Last attempt: ${new Date(lastHeroSyncAttempt).toISOString()}. Skipping.`);
+    return false;
   }
 
-  console.log('Attempting to sync hero images...');
+  console.log('Attempting to sync hero images with Vercel Blob...');
   lastHeroSyncAttempt = now;
   isHeroSyncing = true;
 
   try {
-    const drive = await initializeDrive();
-    const heroFolderId = process.env.GOOGLE_DRIVE_HERO_FOLDER_ID;
-
-    if (!heroFolderId) {
-      console.error('GOOGLE_DRIVE_HERO_FOLDER_ID is not set in environment variables.');
+    const googleDriveHeroFolderId = process.env.GOOGLE_DRIVE_HERO_FOLDER_ID;
+    if (!googleDriveHeroFolderId) {
+      console.error('GOOGLE_DRIVE_HERO_FOLDER_ID is not set.');
       return false;
     }
 
-    ensureHeroImagesDir();
     const cache = readHeroCache();
     
-    const response = await drive.files.list({
-      q: `'${heroFolderId}' in parents and mimeType contains 'image/'`,
-      fields: 'files(id, name)', // Only need id and name
-      pageSize: 50, // Max 50 hero images, reasonable limit
-    });
-
-    const driveFiles = response.data.files || [];
-    if (driveFiles.length === 0) {
-        console.log('No image files found in the Google Drive hero folder.');
-        // Potentially clear local folder if desired, or leave as is.
-        // For now, let's clear local files not in an empty driveFiles list.
+    // 1. Get list of current hero images from Google Drive
+    const driveImages = await getDriveHeroImages(); // This now returns {id, name}[]
+    if (!driveImages) {
+        console.error('Failed to fetch hero images list from Google Drive.');
+        return false;
     }
+    console.log(`Found ${driveImages.length} images in Google Drive hero folder.`);
 
-    const driveFileMap = new Map<string, string>(); // driveFileName: driveFileId
-    driveFiles.forEach(file => {
-      if (file.name && file.id) {
-        driveFileMap.set(file.name, file.id);
-      }
+    const driveImageMap = new Map<string, string>(); // blobPathname: driveFileId
+    driveImages.forEach(img => {
+      const blobPathname = `${HERO_BLOB_PREFIX}${img.name}`; // Sanitize name if necessary
+      driveImageMap.set(blobPathname, img.id);
     });
 
-    const localFiles = fs.existsSync(HERO_IMAGES_DIR) ? fs.readdirSync(HERO_IMAGES_DIR) : [];
+    // 2. Get list of current hero images from Vercel Blob
+    const { blobs: existingBlobObjects } = await listBlobFiles(HERO_BLOB_PREFIX);
+    const existingBlobMap = new Map<string, BlobListResultBlob>(); // blobPathname: BlobObject
+    existingBlobObjects.forEach(blob => existingBlobMap.set(blob.pathname, blob));
+    console.log(`Found ${existingBlobObjects.length} images in Vercel Blob at prefix ${HERO_BLOB_PREFIX}.`);
 
-    // Download or update files from Drive
-    for (const driveFile of driveFiles) {
-      if (!driveFile.id || !driveFile.name) continue;
+    let filesChanged = false;
 
-      const localFilePath = path.join(HERO_IMAGES_DIR, driveFile.name);
-      let needsDownload = false;
+    // 3. Upload new or changed files from Drive to Blob
+    for (const driveImage of driveImages) {
+      const blobPathname = `${HERO_BLOB_PREFIX}${driveImage.name}`; // Ensure consistent naming
+      const cachedBlobEntry = cache.blobFiles[blobPathname];
 
-      if (!fs.existsSync(localFilePath)) {
-        needsDownload = true;
-        console.log(`Hero image ${driveFile.name} not found locally, scheduling download.`);
+      // Upload if:
+      // - Not in Blob cache (new file).
+      // - Or, Drive ID in cache doesn't match current Drive ID (file with same name was replaced in Drive).
+      // - Or, not actually in Blob storage (e.g. cache is stale or manual deletion from Blob).
+      if (!cachedBlobEntry || cachedBlobEntry.driveId !== driveImage.id || !existingBlobMap.has(blobPathname)) {
+        console.log(`Processing hero image for upload/update: ${driveImage.name} (ID: ${driveImage.id}) to ${blobPathname}`);
+        try {
+          const imageBuffer = await downloadImageAsBuffer(driveImage.id);
+          const uploadedBlob = await uploadToBlob(imageBuffer, blobPathname); // uploadToBlob from blobStorage.ts
+          cache.blobFiles[blobPathname] = { driveId: driveImage.id, pathname: uploadedBlob.pathname };
+          console.log(`Uploaded hero image: ${uploadedBlob.pathname} (URL: ${uploadedBlob.url})`);
+          filesChanged = true;
+        } catch (error) {
+          console.error(`Error processing hero image ${driveImage.name} (ID: ${driveImage.id}):`, error);
+          // If upload fails, remove from cache to ensure retry on next sync
+          delete cache.blobFiles[blobPathname];
+        }
       } else {
-        const currentHash = calculateFileHash(localFilePath);
-        const cachedHash = cache.fileHashes[localFilePath];
-        if (!currentHash || currentHash !== cachedHash) {
-          needsDownload = true;
-          console.log(`Hash mismatch or missing hash for hero image ${driveFile.name}, scheduling re-download.`);
-        } else {
-          // console.log(`Hero image ${driveFile.name} is up-to-date (hash match).`);
-        }
+        // console.log(`Hero image ${driveImage.name} (${blobPathname}) is up-to-date in Blob.`);
       }
+    }
 
-      if (needsDownload) {
+    // 4. Remove files from Blob that no longer exist in Drive's hero folder
+    for (const existingBlobPathname of existingBlobMap.keys()) {
+      if (!driveImageMap.has(existingBlobPathname)) {
+        console.log(`Removing stale hero image from Blob: ${existingBlobPathname}`);
         try {
-          console.log(`Downloading hero image: ${driveFile.name} (ID: ${driveFile.id})`);
-          await downloadImage(driveFile.id, localFilePath);
-          const newHash = calculateFileHash(localFilePath);
-          if (newHash) {
-            cache.fileHashes[localFilePath] = newHash;
-          } else {
-            console.warn(`Could not calculate hash for newly downloaded hero image ${localFilePath}.`);
-            delete cache.fileHashes[localFilePath]; // Remove potentially stale hash
-          }
+          await deleteFromBlob(existingBlobPathname); // deleteFromBlob from blobStorage.ts
+          delete cache.blobFiles[existingBlobPathname];
+          console.log(`Removed stale hero image: ${existingBlobPathname}`);
+          filesChanged = true;
         } catch (error) {
-          console.error(`Error downloading hero image ${driveFile.name}:`, error);
-          // If download fails, ensure no stale hash for this path
-          delete cache.fileHashes[localFilePath];
+          console.error(`Error removing stale hero image ${existingBlobPathname} from Blob:`, error);
         }
       }
     }
 
-    // Remove local files that no longer exist in Drive's hero folder
-    for (const localFile of localFiles) {
-      if (!driveFileMap.has(localFile)) {
-        const localFilePath = path.join(HERO_IMAGES_DIR, localFile);
-        try {
-          fs.unlinkSync(localFilePath);
-          delete cache.fileHashes[localFilePath];
-          console.log(`Removed stale hero image: ${localFilePath}`);
-        } catch (error) {
-          console.error(`Error removing stale hero image ${localFilePath}:`, error);
-        }
-      }
+    if (filesChanged) {
+        console.log('Hero images in Vercel Blob were updated.');
+    } else {
+        console.log('No changes to hero images in Vercel Blob.');
     }
 
-    cache.lastSync = Date.now();
+    cache.lastSync = now;
     writeHeroCache(cache);
-    console.log('Hero images sync completed.');
+    console.log('Hero images sync with Vercel Blob completed.');
     return true;
 
   } catch (error) {
-    console.error('Error during hero images sync:', error);
+    console.error('Error during hero images sync with Vercel Blob:', error);
     return false;
   } finally {
     isHeroSyncing = false;

@@ -217,33 +217,23 @@ export const getHeroImages = async () => {
       return [];
     }
 
-    console.log('Fetching hero images from folder:', heroFolderId);
+    // console.log('Fetching hero images from folder:', heroFolderId); // Optional: keep for debugging
     const response = await drive.files.list({
-      q: `'${heroFolderId}' in parents and mimeType contains 'image/'`,
-      fields: 'files(id, name, mimeType)',
+      q: `'${heroFolderId}' in parents and mimeType contains 'image/' and trashed = false`,
+      fields: 'files(id, name)', // Only fetch id and name
     });
 
     const files = response.data.files || [];
-    console.log(`Found ${files.length} hero images:`, files.map(f => f.name));
+    // console.log(`Found ${files.length} hero images raw data:`, files); // Optional: keep for debugging
 
-    const images = files
-      .filter(file => file.id && file.name) // Ensure id and name are present for hero images too
-      .map(file => {
-        const id = file.id as string;
-        const name = file.name as string;
-        const ext = name.split('.').pop()?.toLowerCase() || 'jpg';
-        const src = `/portfolio_images/hero/${id}.${ext}`;
-        console.log(`Mapping hero image: ${name} -> ${src}`);
-        return {
-          id: id,
-          name: name,
-          src
-        };
-      });
-
-    return images;
+    return files
+      .filter(file => file.id && file.name) 
+      .map(file => ({
+        id: file.id as string,
+        name: file.name as string,
+      }));
   } catch (error) {
-    console.error('Error getting hero images:', error);
+    console.error('Error getting hero images list from Google Drive:', error);
     return [];
   }
 }; 
