@@ -9,10 +9,11 @@ import path from 'path';
 // Define a prefix for hero images in Vercel Blob
 const HERO_BLOB_PREFIX = 'hero_images/';
 
-// Cache file remains, but its content/meaning will change slightly
-const HERO_CACHE_FILE = path.join(process.cwd(), '.hero-sync-cache.json');
-// const HERO_SYNC_COOLDOWN = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
-const HERO_SYNC_COOLDOWN = 0; // Temporarily set to 0 for debugging
+// Cache file must be written to /tmp in a serverless environment
+const HERO_CACHE_FILE = path.join('/tmp', '.hero-sync-cache.json');
+// const HERO_CACHE_FILE = path.join(process.cwd(), '.hero-sync-cache.json'); // Old path
+const HERO_SYNC_COOLDOWN = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
+// const HERO_SYNC_COOLDOWN = 0; // Temporarily set to 0 for debugging
 // const HERO_SYNC_COOLDOWN = 3600000; // 1 hour in milliseconds
 // const HERO_SYNC_COOLDOWN = 0; // Temporarily set to 0 for debugging
 
