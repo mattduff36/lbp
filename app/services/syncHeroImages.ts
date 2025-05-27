@@ -2,7 +2,7 @@ import { google } from 'googleapis';
 import crypto from 'crypto';
 import { initializeDrive, getHeroImages as getDriveHeroImages } from './googleDrive';
 import { uploadToBlob, deleteFromBlob, listBlobFiles } from './blobStorage'; // Import blob functions
-import { BlobListResultBlob } from '@vercel/blob'; // Import type for list results
+// import { BlobListResultBlob } from '@vercel/blob'; // Import type for list results - This type is not used.
 import fs from 'fs';
 import path from 'path';
 
