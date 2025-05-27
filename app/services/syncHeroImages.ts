@@ -100,7 +100,7 @@ export const syncHeroImages = async (): Promise<boolean> => {
         console.error('Failed to fetch hero images list from Google Drive.');
         return false;
     }
-    console.log(`Found ${driveImages.length} images in Google Drive hero folder.`);
+    // console.log(`Found ${driveImages.length} images in Google Drive hero folder.`);
 
     const driveImageMap = new Map<string, string>(); // blobPathname: driveFileId
     driveImages.forEach(img => {
@@ -114,7 +114,7 @@ export const syncHeroImages = async (): Promise<boolean> => {
     const existingBlobMap = new Map<string, BlobImage>(); // blobPathname: BlobImage (from our type)
     if (existingBlobObjects) { // Add a check for safety, though listBlobFiles should return [] or throw
         existingBlobObjects.forEach(blob => existingBlobMap.set(blob.pathname, blob));
-        console.log(`Found ${existingBlobObjects.length} images in Vercel Blob at prefix ${HERO_BLOB_PREFIX}.`);
+        // console.log(`Found ${existingBlobObjects.length} images in Vercel Blob at prefix ${HERO_BLOB_PREFIX}.`);
     } else {
         console.log(`No images found or an issue occurred while listing from Vercel Blob at prefix ${HERO_BLOB_PREFIX}. Assuming empty.`);
         // existingBlobObjects will effectively be an empty array if it was null/undefined leading here,
@@ -133,12 +133,12 @@ export const syncHeroImages = async (): Promise<boolean> => {
       // - Or, Drive ID in cache doesn't match current Drive ID (file with same name was replaced in Drive).
       // - Or, not actually in Blob storage (e.g. cache is stale or manual deletion from Blob).
       if (!cachedBlobEntry || cachedBlobEntry.driveId !== driveImage.id || !existingBlobMap.has(blobPathname)) {
-        console.log(`Processing hero image for upload/update: ${driveImage.name} (ID: ${driveImage.id}) to ${blobPathname}`);
+        // console.log(`Processing hero image for upload/update: ${driveImage.name} (ID: ${driveImage.id}) to ${blobPathname}`);
         try {
           const imageBuffer = await downloadImageAsBuffer(driveImage.id);
           const uploadedBlob = await uploadToBlob(imageBuffer, blobPathname); // uploadToBlob from blobStorage.ts
           cache.blobFiles[blobPathname] = { driveId: driveImage.id, pathname: uploadedBlob.pathname };
-          console.log(`Uploaded hero image: ${uploadedBlob.pathname} (URL: ${uploadedBlob.url})`);
+          console.log(`Uploaded hero image: ${uploadedBlob.pathname}`);
           filesChanged = true;
         } catch (error) {
           console.error(`Error processing hero image ${driveImage.name} (ID: ${driveImage.id}):`, error);
@@ -153,7 +153,7 @@ export const syncHeroImages = async (): Promise<boolean> => {
     // 4. Remove files from Blob that no longer exist in Drive's hero folder
     for (const existingBlobPathname of existingBlobMap.keys()) {
       if (!driveImageMap.has(existingBlobPathname)) {
-        console.log(`Removing stale hero image from Blob: ${existingBlobPathname}`);
+        // console.log(`Removing stale hero image from Blob: ${existingBlobPathname}`);
         try {
           await deleteFromBlob(existingBlobPathname); // deleteFromBlob from blobStorage.ts
           delete cache.blobFiles[existingBlobPathname];
@@ -168,7 +168,7 @@ export const syncHeroImages = async (): Promise<boolean> => {
     if (filesChanged) {
         console.log('Hero images in Vercel Blob were updated.');
     } else {
-        console.log('No changes to hero images in Vercel Blob.');
+        // console.log('No changes to hero images in Vercel Blob.');
     }
 
     cache.lastSync = now;
