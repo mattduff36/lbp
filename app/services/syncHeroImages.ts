@@ -12,10 +12,9 @@ const HERO_BLOB_PREFIX = 'hero_images/';
 // Cache file must be written to /tmp in a serverless environment
 const HERO_CACHE_FILE = path.join('/tmp', '.hero-sync-cache.json');
 // const HERO_CACHE_FILE = path.join(process.cwd(), '.hero-sync-cache.json'); // Old path
-const HERO_SYNC_COOLDOWN = 0; // Temporarily set to 0 for debugging
-// const HERO_SYNC_COOLDOWN = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
-// const HERO_SYNC_COOLDOWN = 3600000; // 1 hour in milliseconds
+const HERO_SYNC_COOLDOWN = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
 // const HERO_SYNC_COOLDOWN = 0; // Temporarily set to 0 for debugging
+// const HERO_SYNC_COOLDOWN = 3600000; // 1 hour in milliseconds
 
 interface HeroSyncCache {
   lastSync: number;
@@ -30,10 +29,9 @@ let lastHeroSyncAttempt = 0;
 
 // Read hero cache file (structure updated)
 const readHeroCache = (): HeroSyncCache => {
-  // TEMPORARILY RETURN EMPTY CACHE TO FORCE FULL RESYNC
-  console.warn('[DEBUG] readHeroCache: Forcing empty cache for one-time resync.');
-  return { lastSync: 0, blobFiles: {} };
-/*
+  // console.warn('[DEBUG] readHeroCache: Forcing empty cache for one-time resync.');
+  // return { lastSync: 0, blobFiles: {} };
+
   try {
     if (fs.existsSync(HERO_CACHE_FILE)) {
       const cacheData = fs.readFileSync(HERO_CACHE_FILE, 'utf-8');
@@ -47,7 +45,6 @@ const readHeroCache = (): HeroSyncCache => {
     console.error('Error reading hero sync cache:', error);
   }
   return { lastSync: 0, blobFiles: {} };
-*/
 };
 
 // Write hero cache file (structure updated)
