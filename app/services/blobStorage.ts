@@ -10,6 +10,8 @@ export const uploadToBlob = async (file: Buffer, pathname: string): Promise<Blob
   try {
     const blob = await put(pathname, file, {
       access: 'public',
+      addRandomSuffix: false,
+      allowOverwrite: true,
     });
     return {
       url: blob.url,
