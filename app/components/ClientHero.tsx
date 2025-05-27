@@ -93,16 +93,12 @@ export default function ClientHero() {
       className="relative w-full h-[calc(100vh-4rem)] overflow-hidden cursor-pointer"
       onClick={handleImageClick}
     >
-      <AnimatePresence initial={false} mode='wait'>
+      <AnimatePresence initial={false}>
         <motion.div
           key={currentIndex}
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{
-            opacity: { duration: 1.5, ease: "easeInOut" },
-          }}
-          className="absolute inset-0 w-full h-full"
+          initial={{ opacity: 0, position: 'absolute', inset: 0 }}
+          animate={{ opacity: 1, transition: { duration: 1.5, ease: "easeInOut" } }}
+          exit={{ opacity: 0, transition: { duration: 1.5, ease: "easeInOut" } }}
         >
           <Image
             src={images[currentIndex].src}
