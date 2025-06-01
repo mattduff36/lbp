@@ -151,7 +151,7 @@ export default function ClientLayout({ children }: ClientLayoutProps) {
         </footer>
       </div>
 
-      {isAboutModalOpen && <AboutModal onClose={() => setIsAboutModalOpen(false)} />}
+      {isAboutModalOpen && <AboutModal isOpen={isAboutModalOpen} onClose={() => setIsAboutModalOpen(false)} />}
     </>
   )
 } 
