@@ -75,6 +75,12 @@ const downloadImageAsBuffer = async (fileId: string): Promise<Buffer> => {
 
 // Main sync function for hero images (rewritten for Vercel Blob)
 export const syncHeroImages = async (): Promise<boolean> => {
+  // Vercel Build Context Check
+  if (process.env.CI === 'true') {
+    console.log('[syncHeroImages] In Vercel CI (build) environment, skipping actual sync operations.');
+    return true;
+  }
+
   if (isHeroSyncing) {
     console.log('Hero image sync already in progress, skipping.');
     return false;

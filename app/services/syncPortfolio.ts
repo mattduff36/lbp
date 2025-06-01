@@ -149,6 +149,13 @@ const syncCategory = async (categoryData: { name: string; files: Array<{id: stri
 
 // Main sync function
 export const syncPortfolio = async (categoryToSyncName?: string): Promise<boolean> => {
+  // Vercel Build Context Check
+  if (process.env.CI === 'true') {
+    const buildSyncTypeMessage = categoryToSyncName ? `category: ${categoryToSyncName}` : 'all categories';
+    console.log(`[syncPortfolio] In Vercel CI (build) environment, skipping actual sync for ${buildSyncTypeMessage}.`);
+    return true; 
+  }
+
   if (isSyncing) {
     console.log('Sync already in progress, skipping.');
     return false;
