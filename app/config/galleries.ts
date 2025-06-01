@@ -9,6 +9,9 @@ export const GALLERIES: GalleryConfig[] = [
   { name: 'Portrait', path: '/portfolio/portrait', localDir: 'portrait' },
   { name: 'Lifestyle', path: '/portfolio/lifestyle', localDir: 'lifestyle' },
   { name: 'Landscape', path: '/portfolio/landscape', localDir: 'landscape' },
-  { name: 'Animals', path: '/portfolio/animals', localDir: 'animals' },
+  { name: 'Wildlife', path: '/portfolio/wildlife', localDir: 'wildlife' },
   { name: 'Sport', path: '/portfolio/sport', localDir: 'sport' },
+  { name: 'Baby', path: '/portfolio/baby', localDir: 'baby' },
+  { name: 'Family', path: '/portfolio/family', localDir: 'family' },
+  { name: 'Pets', path: '/portfolio/pets', localDir: 'pets' },
 ]; 

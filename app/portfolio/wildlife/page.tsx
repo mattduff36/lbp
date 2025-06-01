@@ -2,11 +2,11 @@
 
 import PortfolioGallery from '@/app/components/PortfolioGallery';
 
-export default function AnimalsPortfolioPage() {
+export default function WildlifePortfolioPage() {
   return (
     <PortfolioGallery 
-      category="animals" 
-      title="Animals"
+      category="wildlife" 
+      title="Wildlife"
     />
   );
 } 

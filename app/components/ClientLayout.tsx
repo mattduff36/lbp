@@ -31,8 +31,11 @@ export default function ClientLayout({ children }: ClientLayoutProps) {
     { name: 'Portrait', path: '/portfolio/portrait' },
     { name: 'Lifestyle', path: '/portfolio/lifestyle' },
     { name: 'Landscape', path: '/portfolio/landscape' },
-    { name: 'Animals', path: '/portfolio/animals' },
+    { name: 'Wildlife', path: '/portfolio/wildlife' },
     { name: 'Sport', path: '/portfolio/sport' },
+    { name: 'Baby', path: '/portfolio/baby' },
+    { name: 'Family', path: '/portfolio/family' },
+    { name: 'Pets', path: '/portfolio/pets' },
   ]
 
   const handleMouseEnter = () => {
