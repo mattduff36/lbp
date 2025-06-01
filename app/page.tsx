@@ -4,6 +4,7 @@ import AnimatedPortfolio from './components/AnimatedPortfolio';
 import path from 'path'; // Still potentially needed if other parts use it, but not for getPreviewImageSrc
 import { list } from '@vercel/blob'; // Added for Vercel Blob Storage
 import { GALLERIES } from '@/app/config/galleries'; // Import shared config
+import { triggerAllPortfolioGalleriesSync, triggerAllHeroImagesSync } from '@/app/actions/siteSyncActions'; // Added import
 
 // const galleries = [...] // This is now imported
 
@@ -44,6 +45,24 @@ const getPreviewImageSrc = async (categoryDir: string): Promise<string | null> =
 };
 
 export default async function Home() {
+  // --- Temporary Sync Trigger --- 
+  console.log('[TEMP SYNC] Attempting to trigger all portfolio galleries sync...');
+  try {
+    const portfolioSyncResult = await triggerAllPortfolioGalleriesSync();
+    console.log('[TEMP SYNC] Portfolio galleries sync result:', portfolioSyncResult);
+  } catch (error) {
+    console.error('[TEMP SYNC] Error triggering portfolio galleries sync:', error);
+  }
+
+  console.log('[TEMP SYNC] Attempting to trigger all hero images sync...');
+  try {
+    const heroSyncResult = await triggerAllHeroImagesSync();
+    console.log('[TEMP SYNC] Hero images sync result:', heroSyncResult);
+  } catch (error) {
+    console.error('[TEMP SYNC] Error triggering hero images sync:', error);
+  }
+  // --- End of Temporary Sync Trigger ---
+
   const galleriesWithPreviewsPromises = GALLERIES.map(async (gallery) => ({
     ...gallery,
     previewImageSrc: await getPreviewImageSrc(gallery.localDir),
