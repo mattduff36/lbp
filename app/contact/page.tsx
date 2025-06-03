@@ -27,14 +27,19 @@ export default function ContactPage() {
         variants={staggerContainer}
         className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-24"
       >
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
+        <motion.div variants={fadeInUp} className="mb-12 md:mb-16">
+          <h1 className="text-4xl md:text-5xl font-medium text-gray-100 tracking-wider uppercase font-montserrat mb-4 text-center">
+            Get in Touch
+          </h1>
+          <div className="h-1 w-20 bg-gray-600 rounded-full mx-auto"></div>
+        </motion.div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-start">
+          <motion.div variants={fadeInUp} className="bg-gray-900/50 rounded-2xl p-8 shadow-xl">
+            <ContactForm />
+          </motion.div>
+
           <motion.div variants={fadeInUp} className="space-y-8">
-            <div>
-              <h1 className="text-4xl md:text-5xl font-medium text-gray-100 tracking-wider uppercase font-montserrat mb-4">
-                Get in Touch
-              </h1>
-              <div className="h-1 w-20 bg-gray-600 rounded-full"></div>
-            </div>
             <div className="prose prose-invert max-w-none space-y-6">
               <motion.p variants={fadeInUp} className="text-gray-300 text-lg leading-relaxed">
                 I'd love to hear from you! Whether you're interested in booking a session, have questions about my services, or just want to say hello, feel free to reach out.
@@ -70,9 +75,6 @@ export default function ContactPage() {
                 </div>
               </motion.div>
             </div>
-          </motion.div>
-          <motion.div variants={fadeInUp} className="bg-gray-900/50 rounded-2xl p-8 shadow-xl">
-            <ContactForm />
           </motion.div>
         </div>
       </motion.div>
