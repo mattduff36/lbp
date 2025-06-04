@@ -11,9 +11,6 @@ interface ClientLayoutProps {
 
 export default function ClientLayout({ children }: ClientLayoutProps) {
   const [isAboutModalOpen, setIsAboutModalOpen] = useState(false)
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false)
-  const dropdownRef = useRef<HTMLDivElement>(null)
-  const dropdownTimeoutRef = useRef<NodeJS.Timeout>()
   const router = useRouter()
 
   const scrollToPortfolio = () => {
@@ -26,116 +23,15 @@ export default function ClientLayout({ children }: ClientLayoutProps) {
     }, 100)
   }
 
-  const galleries = [
-    { name: 'Wedding', path: '/portfolio/wedding' },
-    { name: 'Portrait', path: '/portfolio/portrait' },
-    { name: 'Lifestyle', path: '/portfolio/lifestyle' },
-    { name: 'Landscape', path: '/portfolio/landscape' },
-    { name: 'Wildlife', path: '/portfolio/wildlife' },
-    { name: 'Sport', path: '/portfolio/sport' },
-    { name: 'Baby', path: '/portfolio/baby' },
-    { name: 'Family', path: '/portfolio/family' },
-    { name: 'Pets', path: '/portfolio/pets' },
-  ]
-
-  const handleMouseEnter = () => {
-    if (dropdownTimeoutRef.current) {
-      clearTimeout(dropdownTimeoutRef.current);
-    }
-    setIsDropdownOpen(true)
-  }
-
-  const handleMouseLeave = () => {
-    dropdownTimeoutRef.current = setTimeout(() => {
-      setIsDropdownOpen(false)
-    }, 300)
-  }
-
-  useEffect(() => {
-    const currentDropdownTimeout = dropdownTimeoutRef.current;
-    return () => {
-      if (currentDropdownTimeout) {
-        clearTimeout(currentDropdownTimeout);
-      }
-    };
-  }, [])
-
   return (
     <>
       <div className="min-h-screen flex flex-col bg-black text-white">
-        <header className="bg-black shadow-sm border-b border-gray-800">
-          <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex justify-center h-16">
-              <div className="flex space-x-8">
-                <Link
-                  href="/"
-                  className="inline-flex items-center px-1 pt-1 text-sm font-medium text-gray-300 hover:text-white tracking-wider uppercase font-montserrat"
-                >
-                  Home
-                </Link>
-                <div 
-                  className="relative"
-                  ref={dropdownRef}
-                  onMouseEnter={handleMouseEnter}
-                  onMouseLeave={handleMouseLeave}
-                >
-                  <button
-                    onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                    className="inline-flex items-center px-1 pt-1 text-sm font-medium text-gray-300 hover:text-white tracking-wider uppercase font-montserrat h-full"
-                  >
-                    Portfolio
-                    <svg
-                      className={`ml-2 h-4 w-4 transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`}
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                    </svg>
-                  </button>
-                  {isDropdownOpen && (
-                    <div
-                      className="absolute left-0 mt-2 w-48 rounded-md shadow-lg bg-black ring-1 ring-gray-800 z-50"
-                    >
-                      <div className="py-1">
-                        {galleries.map((gallery) => (
-                          <Link
-                            key={gallery.path}
-                            href={gallery.path}
-                            className="block px-4 py-2 text-sm text-gray-300 hover:text-white hover:bg-gray-900"
-                            onClick={() => setIsDropdownOpen(false)}
-                          >
-                            {gallery.name}
-                          </Link>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </div>
-                <Link
-                  href="/about"
-                  className="inline-flex items-center px-1 pt-1 text-sm font-medium text-gray-300 hover:text-white tracking-wider uppercase font-montserrat"
-                >
-                  About
-                </Link>
-                <Link
-                  href="/contact"
-                  className="inline-flex items-center px-1 pt-1 text-sm font-medium text-gray-300 hover:text-white tracking-wider uppercase font-montserrat"
-                >
-                  Contact
-                </Link>
-              </div>
-            </div>
-          </nav>
-        </header>
-
         <main className="flex-grow">
           {children}
         </main>
 
         <footer className="bg-black border-t border-gray-800 relative">
-          <div className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8 flex justify-center items-center relative">
-            {/* Center: Existing footer content & Sync Status */}
+          <div className="max-w-7xl mx-auto py-4 px-4 sm:px-6 lg:px-8 flex justify-center items-center relative">
             <div className="text-center">
               <p className="text-sm text-gray-400">
                 Website developed by{' '}

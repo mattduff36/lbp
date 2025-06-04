@@ -39,7 +39,7 @@ export default function ClientHero() {
     if (images.length > 1 && isAutoSliding) {
       const timer = setInterval(() => {
         setCurrentIndex((prevIndex) => (prevIndex + 1) % images.length);
-      }, 8000);
+      }, 5600);
 
       return () => clearInterval(timer);
     }

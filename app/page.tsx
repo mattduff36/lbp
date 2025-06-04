@@ -46,6 +46,7 @@ const getPreviewImageSrc = async (categoryDir: string): Promise<string | null> =
 
 export default async function Home() {
   // --- Temporary Sync Trigger --- 
+  /*
   console.log('[TEMP SYNC] Attempting to trigger all portfolio galleries sync...');
   try {
     const portfolioSyncResult = await triggerAllPortfolioGalleriesSync();
@@ -61,6 +62,7 @@ export default async function Home() {
   } catch (error) {
     console.error('[TEMP SYNC] Error triggering hero images sync:', error);
   }
+  */
   // --- End of Temporary Sync Trigger ---
 
   const galleriesWithPreviewsPromises = GALLERIES.map(async (gallery) => ({

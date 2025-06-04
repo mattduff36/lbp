@@ -4,6 +4,7 @@ import { Great_Vibes, Marcellus, Montserrat } from 'next/font/google'
 import ClientLayout from './components/ClientLayout'
 import Providers from './providers'
 import { Analytics } from "@vercel/analytics/react"
+import Navbar from './components/layout/Navbar'
 
 const greatVibes = Great_Vibes({
   weight: '400',
@@ -77,7 +78,8 @@ export default function RootLayout({
       </head>
       <body className="bg-off-white min-h-screen">
         <Providers>
-          <ClientLayout>{children}</ClientLayout>
+          <Navbar key="navbar" />
+          <ClientLayout key="client-layout">{children}</ClientLayout>
         </Providers>
         <Analytics />
       </body>
