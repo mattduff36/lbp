@@ -59,7 +59,6 @@ export async function PUT(
       );
     }
 
-    /*
     const existingClientWithNewUsername = await prisma.client.findFirst({
       where: {
         username,
@@ -76,6 +75,7 @@ export async function PUT(
       );
     }
 
+    /*
     if (username !== currentClient.username && currentClient.folderId) {
       try {
         await renameClientFolder(currentClient.folderId, username);
@@ -96,7 +96,7 @@ export async function PUT(
 
     return NextResponse.json({ client: updatedClient });
     */
-    return NextResponse.json({ message: "PUT: findUnique active, other DB/Drive calls commented"}); // Placeholder
+    return NextResponse.json({ message: "PUT: findFirst active, rename/update commented"}); // Placeholder
   } catch (error) {
     console.error('Error updating client:', error);
     // Check if the error is from request.json() parsing, e.g., invalid JSON
