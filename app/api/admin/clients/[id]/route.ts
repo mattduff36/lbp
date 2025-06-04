@@ -1,11 +1,11 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { verify } from 'jsonwebtoken';
 import { prisma } from '../../../../lib/prisma';
 import { deleteClientFolder, renameClientFolder } from '../../../../lib/googleDrive';
 
 // Helper function to verify admin authentication
-const verifyAdmin = async (request: Request) => {
+const verifyAdmin = async (request: NextRequest) => {
   const cookieStore = cookies();
   const token = cookieStore.get('admin_token')?.value;
 
@@ -23,7 +23,7 @@ const verifyAdmin = async (request: Request) => {
 
 // PUT /api/admin/clients/[id] - Update a client
 export async function PUT(
-  request: Request,
+  request: NextRequest,
   { params }: { params: { id: string } }
 ) {
   const isAdmin = await verifyAdmin(request);
@@ -97,7 +97,7 @@ export async function PUT(
 
 // DELETE /api/admin/clients/[id] - Delete a client
 export async function DELETE(
-  request: Request,
+  request: NextRequest,
   { params }: { params: { id: string } }
 ) {
   const isAdmin = await verifyAdmin(request);
