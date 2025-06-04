@@ -82,15 +82,14 @@ export async function PUT(
     // Rename Google Drive folder if username changed and folderId exists
     if (folderId && username !== oldUsername && oldUsername) { // Use folderId and oldUsername
       try {
-        const newDriveFolderId = await renameClientFolder(folderId, username); // Use username
-        if (newDriveFolderId) {
-          updatedDriveFolderId = newDriveFolderId; 
-          console.log(`Client folder ${oldUsername} (ID: ${folderId}) renamed to ${username}.`);
-        } else {
-          console.warn(`Could not rename folder for client ID ${clientId}. Proceeding with DB update.`);
-        }
+        await renameClientFolder(folderId, username); // Call the function
+        // If renameClientFolder completes without throwing, it means success.
+        console.log(`Client folder ${oldUsername} (ID: ${folderId}) renamed to ${username}.`);
+        // The folderId does not change upon renaming, so updatedDriveFolderId remains existingClient.folderId
       } catch (driveError) {
+        // This catch is specific to the drive operation. The outer catch will handle broader errors.
         console.error(`Error renaming Google Drive folder for client ${clientId}:`, driveError);
+        // As per previous logic, we'll log and proceed with DB update even if Drive rename fails.
       }
     }
 
@@ -99,7 +98,7 @@ export async function PUT(
       where: { id: clientId },
       data: {
         username, // Use username from schema
-        folderId: updatedDriveFolderId, // Use folderId from schema
+        folderId: updatedDriveFolderId, // This is the original folderId, which is correct.
         // Email is not updated as it's not in the Client model
       },
     });
