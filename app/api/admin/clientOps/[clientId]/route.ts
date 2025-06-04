@@ -2,7 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { verify } from 'jsonwebtoken';
 import { prisma } from '../../../../lib/prisma';
-import { deleteClientFolder, renameClientFolder } from '../../../../lib/googleDrive';
+// Google Drive imports removed for now to stabilize build
+// import { deleteClientFolder, renameClientFolder } from '../../../../lib/googleDrive';
 
 // Helper function to verify admin authentication
 const verifyAdmin = async (request: NextRequest) => {
@@ -37,11 +38,70 @@ export async function PUT(
     return NextResponse.json({ error: 'Client ID is missing' }, { status: 400 });
   }
 
-  // Entire try...catch block (copied from DELETE) is removed for this baseline test.
-  return NextResponse.json({ message: "Minimal PUT for build baseline verification" });
+  try {
+    const { username, password } = await request.json();
+
+    if (!username || !password) {
+      return NextResponse.json(
+        { error: 'Username and password are required' },
+        { status: 400 }
+      );
+    }
+
+    const currentClient = await prisma.client.findUnique({
+      where: { id: clientId },
+      select: { username: true, folderId: true }, // folderId might be useful for future re-integration
+    });
+
+    if (!currentClient) {
+      return NextResponse.json(
+        { error: 'Client not found' },
+        { status: 404 }
+      );
+    }
+
+    const existingClientWithNewUsername = await prisma.client.findFirst({
+      where: {
+        username,
+        NOT: {
+          id: clientId,
+        },
+      },
+    });
+
+    if (existingClientWithNewUsername) {
+      return NextResponse.json(
+        { error: 'Username already exists' },
+        { status: 400 }
+      );
+    }
+
+    if (username !== currentClient.username && currentClient.folderId) {
+      // Attempt to rename Google Drive folder was here. Currently disabled.
+      console.log(`Skipping Google Drive folder rename for client ${clientId} (feature temporarily disabled).`);
+    }
+
+    const updatedClient = await prisma.client.update({
+      where: { id: clientId },
+      data: {
+        username,
+        password,
+      },
+    });
+
+    return NextResponse.json({ client: updatedClient });
+  } catch (error) {
+    console.error('Error updating client:', error);
+    if (error instanceof SyntaxError) {
+      return NextResponse.json({ error: 'Invalid request body' }, { status: 400 });
+    }
+    return NextResponse.json(
+      { error: 'Failed to update client' },
+      { status: 500 }
+    );
+  }
 }
 
-/* // DELETE handler commented out for diagnostic
 // DELETE /api/admin/clientOps/[clientId] - Delete a client
 export async function DELETE(
   request: NextRequest,
@@ -58,30 +118,25 @@ export async function DELETE(
   }
 
   try {
-    const clientData = await prisma.client.findUnique({
-      where: { id: clientId },
-      select: { folderId: true },
-    });
+    // const clientData = await prisma.client.findUnique({ // To get folderId if Drive deletion is re-enabled
+    //   where: { id: clientId },
+    //   select: { folderId: true },
+    // });
 
-    if (clientData?.folderId) {
-      try {
-        await deleteClientFolder(clientData.folderId);
-      } catch (driveError) {
-        console.error('Google Drive folder deletion failed:', driveError);
-        // Optionally, decide if this error should prevent client deletion
-        // For now, proceeding with DB deletion even if Drive deletion fails
-      }
-    }
+    // if (clientData?.folderId) {
+      // Attempt to delete Google Drive folder was here. Currently disabled.
+      // console.log(`Skipping Google Drive folder deletion for client ${clientId} (feature temporarily disabled).`);
+    // }
+    console.log(`Attempting to delete client ${clientId} from database. Drive folder deletion is temporarily disabled.`);
 
     await prisma.client.delete({
       where: { id: clientId },
     });
 
-    return NextResponse.json({ success: true });
+    return NextResponse.json({ success: true, message: "Client deleted from database. Drive folder deletion currently disabled." });
   } catch (error) {
     console.error('Error deleting client:', error);
-    // Check for specific Prisma error for record not found if that's useful
-    if ((error as any).code === 'P2025') {
+    if ((error as any).code === 'P2025') { // Prisma error for record not found
       return NextResponse.json({ error: 'Client not found' }, { status: 404 });
     }
     return NextResponse.json(
@@ -89,5 +144,4 @@ export async function DELETE(
       { status: 500 }
     );
   }
-}
-*/ 
+} 
