@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { cookies } from 'next/headers';
-import { verify } from 'jsonwebtoken';
-import { prisma } from '../../../../lib/prisma';
+// import { cookies } from 'next/headers'; // Commented out as verifyAdmin is commented
+// import { verify } from 'jsonwebtoken'; // Commented out as verifyAdmin is commented
+import { prisma } from '../../../../lib/prisma'; // Keep for now, was in passing test-route
 // Google Drive imports removed for now to stabilize build
 // import { deleteClientFolder, renameClientFolder } from '../../../../lib/googleDrive';
 
-// Helper function to verify admin authentication
+/* // Helper function to verify admin authentication - COMMENTED OUT FOR DIAGNOSTIC
 const verifyAdmin = async (request: NextRequest) => {
   const cookieStore = cookies();
   const token = cookieStore.get('admin_token')?.value;
@@ -22,89 +22,25 @@ const verifyAdmin = async (request: NextRequest) => {
     return false;
   }
 };
+*/
 
 // PUT /api/admin/clientOps/[clientId] - Update a client
 export async function PUT(
-  request: NextRequest,
+  request: NextRequest, // request param kept for signature, though not used if verifyAdmin is out
   context: { params: { clientId: string } }
 ) {
-  const isAdmin = await verifyAdmin(request);
-  if (!isAdmin) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
+  // const isAdmin = await verifyAdmin(request); // COMMENTED OUT FOR DIAGNOSTIC
+  // if (!isAdmin) { // COMMENTED OUT FOR DIAGNOSTIC
+  //   return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  // }
 
   const { clientId } = context.params;
   if (!clientId) {
     return NextResponse.json({ error: 'Client ID is missing' }, { status: 400 });
   }
 
-  try {
-    // All Prisma calls and request.json() parsing commented out for this diagnostic step
-    /*
-    const { username, password } = await request.json();
-
-    if (!username || !password) {
-      return NextResponse.json(
-        { error: 'Username and password are required' },
-        { status: 400 }
-      );
-    }
-
-    const currentClient = await prisma.client.findUnique({
-      where: { id: clientId },
-      select: { username: true, folderId: true },
-    });
-
-    if (!currentClient) {
-      return NextResponse.json(
-        { error: 'Client not found' },
-        { status: 404 }
-      );
-    }
-
-    const existingClientWithNewUsername = await prisma.client.findFirst({
-      where: {
-        username,
-        NOT: {
-          id: clientId,
-        },
-      },
-    });
-
-    if (existingClientWithNewUsername) {
-      return NextResponse.json(
-        { error: 'Username already exists' },
-        { status: 400 }
-      );
-    }
-
-    if (username !== currentClient.username && currentClient.folderId) {
-      console.log(`Skipping Google Drive folder rename for client ${clientId} (feature temporarily disabled).`);
-    }
-
-    // prisma.client.update commented out for diagnostic
-    const updatedClient = await prisma.client.update({
-      where: { id: clientId },
-      data: {
-        username,
-        password,
-      },
-    });
-
-    return NextResponse.json({ client: updatedClient });
-    */
-    return NextResponse.json({ message: "PUT with NO Prisma/json calls, only verifyAdmin and param checks" });
-
-  } catch (error) {
-    console.error('Error in minimal PUT handler:', error);
-    // if (error instanceof SyntaxError) { // Not relevant if request.json() is commented
-    //   return NextResponse.json({ error: 'Invalid request body' }, { status: 400 });
-    // }
-    return NextResponse.json(
-      { error: 'Failed in minimal PUT handler' },
-      { status: 500 }
-    );
-  }
+  // try...catch block removed in previous step, PUT handler is now direct
+  return NextResponse.json({ message: "Extremely minimal PUT, no verifyAdmin, no DB calls" });
 }
 
 /* // DELETE handler commented out for diagnostic
