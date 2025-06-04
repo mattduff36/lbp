@@ -39,6 +39,8 @@ export async function PUT(
   }
 
   try {
+    // All Prisma calls and request.json() parsing commented out for this diagnostic step
+    /*
     const { username, password } = await request.json();
 
     if (!username || !password) {
@@ -80,7 +82,7 @@ export async function PUT(
       console.log(`Skipping Google Drive folder rename for client ${clientId} (feature temporarily disabled).`);
     }
 
-    /* // prisma.client.update commented out for diagnostic
+    // prisma.client.update commented out for diagnostic
     const updatedClient = await prisma.client.update({
       where: { id: clientId },
       data: {
@@ -91,15 +93,15 @@ export async function PUT(
 
     return NextResponse.json({ client: updatedClient });
     */
-    return NextResponse.json({ message: "PUT with Prisma reads only, update commented" });
+    return NextResponse.json({ message: "PUT with NO Prisma/json calls, only verifyAdmin and param checks" });
 
   } catch (error) {
-    console.error('Error updating client:', error);
-    if (error instanceof SyntaxError) {
-      return NextResponse.json({ error: 'Invalid request body' }, { status: 400 });
-    }
+    console.error('Error in minimal PUT handler:', error);
+    // if (error instanceof SyntaxError) { // Not relevant if request.json() is commented
+    //   return NextResponse.json({ error: 'Invalid request body' }, { status: 400 });
+    // }
     return NextResponse.json(
-      { error: 'Failed to update client' },
+      { error: 'Failed in minimal PUT handler' },
       { status: 500 }
     );
   }
