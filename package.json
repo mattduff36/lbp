@@ -7,7 +7,8 @@
     "build": "prisma generate && next build",
     "start": "next start",
     "lint": "next lint",
-    "sync-portfolio": "ts-node app/services/syncPortfolio.ts"
+    "sync-portfolio": "ts-node app/services/syncPortfolio.ts",
+    "postinstall": "prisma generate"
   },
   "dependencies": {
     "@heroicons/react": "^2.1.1",
