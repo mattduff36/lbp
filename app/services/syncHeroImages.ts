@@ -6,6 +6,52 @@ import { uploadToBlob, deleteFromBlob, listBlobFiles, type BlobImage } from './b
 import fs from 'fs';
 import path from 'path';
 
+// Retry utility
+const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
+const MAX_RETRIES = 3; 
+const INITIAL_DELAY_MS = 2000; // Start with a 2-second delay
+
+async function withRetry<T>(
+  fn: () => Promise<T>,
+  functionName: string = 'googleApiCall' // Default function name for logging
+): Promise<T> {
+  let lastError: any;
+  for (let i = 0; i < MAX_RETRIES; i++) {
+    try {
+      return await fn();
+    } catch (error: any) {
+      lastError = error;
+      const errorMessage = error.message?.toLowerCase() || '';
+      const errorCode = error.code?.toUpperCase() || '';
+      const errorStatus = error.response?.status;
+
+      if (
+        errorMessage.includes('socket hang up') ||
+        errorMessage.includes('econnreset') ||
+        errorMessage.includes('timeout') ||
+        errorMessage.includes('network error') ||
+        errorCode === 'ECONNRESET' ||
+        errorCode === 'ETIMEDOUT' ||
+        (errorStatus && [500, 502, 503, 504].includes(errorStatus))
+      ) {
+        if (i < MAX_RETRIES - 1) {
+          const delayTime = INITIAL_DELAY_MS * Math.pow(2, i);
+          console.warn(`[${functionName}] Retryable error (attempt ${i + 1}/${MAX_RETRIES}). Retrying in ${delayTime}ms... Error: ${error.message}`);
+          await delay(delayTime);
+        } else {
+          console.error(`[${functionName}] Max retries (${MAX_RETRIES}) reached for ${functionName}. Last error: ${error.message}`);
+        }
+      } else {
+        console.error(`[${functionName}] Non-retryable error for ${functionName}: ${error.message}`, error);
+        throw error; 
+      }
+    }
+  }
+  console.error(`[${functionName}] Failed after ${MAX_RETRIES} retries for ${functionName}.`);
+  throw lastError; 
+}
+
 // Define a prefix for hero images in Vercel Blob
 const HERO_BLOB_PREFIX = 'hero_images/';
 
@@ -62,14 +108,18 @@ const writeHeroCache = (cache: HeroSyncCache) => {
 const downloadImageAsBuffer = async (fileId: string): Promise<Buffer> => {
   try {
     const drive = await initializeDrive(); // Correctly get the drive instance
-    const response = await drive.files.get(
+    // Wrap the drive.files.get call with retry logic
+    const response = await withRetry(() => drive.files.get(
       { fileId, alt: 'media' },
       { responseType: 'arraybuffer' }
-    );
+    ), `downloadImageAsBuffer_get_${fileId}`);
+    
     return Buffer.from(response.data as ArrayBuffer);
   } catch (error) {
-    console.error(`Error downloading file ${fileId} from Google Drive:`, error);
-    throw error; // Re-throw to be caught by caller
+    // The error will be logged by withRetry if it fails after retries, 
+    // or if it's a non-retryable error.
+    // console.error(`Error downloading file ${fileId} from Google Drive:`, error); // Original logging, can be removed or kept if specific handling is needed here.
+    throw error; // Re-throw to be caught by caller in syncHeroImages
   }
 };
 
