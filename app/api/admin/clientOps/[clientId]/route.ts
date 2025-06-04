@@ -37,72 +37,39 @@ export async function PUT(
     return NextResponse.json({ error: 'Client ID is missing' }, { status: 400 });
   }
 
+  // Original PUT try...catch block is replaced by DELETE's try...catch for diagnostics
   try {
-    const { username, password } = await request.json();
-
-    if (!username || !password) {
-      return NextResponse.json(
-        { error: 'Username and password are required' },
-        { status: 400 }
-      );
-    }
-
-    const currentClient = await prisma.client.findUnique({
+    // Copied from DELETE handler
+    const clientData = await prisma.client.findUnique({
       where: { id: clientId },
-      select: { username: true, folderId: true },
+      select: { folderId: true },
     });
 
-    if (!currentClient) {
-      return NextResponse.json(
-        { error: 'Client not found' },
-        { status: 404 }
-      );
-    }
-
-    const existingClientWithNewUsername = await prisma.client.findFirst({
-      where: {
-        username,
-        NOT: {
-          id: clientId,
-        },
-      },
-    });
-
-    if (existingClientWithNewUsername) {
-      return NextResponse.json(
-        { error: 'Username already exists' },
-        { status: 400 }
-      );
-    }
-
-    if (username !== currentClient.username && currentClient.folderId) {
+    if (clientData?.folderId) {
       try {
-        // TODO: Investigate Vercel build type error when the following line is active.
-        // For now, Google Drive folder renaming on username change is disabled.
-        // await renameClientFolder(currentClient.folderId, username);
-        console.log('Google Drive folder rename is temporarily disabled due to a build issue.');
+        await deleteClientFolder(clientData.folderId);
       } catch (driveError) {
-        console.error('Google Drive folder rename failed (code currently disabled):', driveError);
+        console.error('Google Drive folder deletion failed:', driveError);
+        // Optionally, decide if this error should prevent client deletion
+        // For now, proceeding with DB deletion even if Drive deletion fails
       }
     }
 
-    const updatedClient = await prisma.client.update({
+    await prisma.client.delete({
       where: { id: clientId },
-      data: {
-        username,
-        password, // Ensure password hashing if it was done on creation
-      },
     });
+    // End of critically copied logic from DELETE that performs actual deletion
 
-    return NextResponse.json({ client: updatedClient });
+    return NextResponse.json({ message: "PUT handler with DELETE's logic - DIAGNOSTIC", success: true });
   } catch (error) {
-    console.error('Error updating client:', error);
-    // Check if the error is from request.json() parsing, e.g., invalid JSON
-    if (error instanceof SyntaxError) {
-      return NextResponse.json({ error: 'Invalid request body' }, { status: 400 });
+    // Copied from DELETE handler
+    console.error('Error in PUT (acting as DELETE for diagnostic):', error);
+    // Check for specific Prisma error for record not found if that's useful
+    if ((error as any).code === 'P2025') {
+      return NextResponse.json({ error: 'Client not found (in PUT as DELETE diagnostic)' }, { status: 404 });
     }
     return NextResponse.json(
-      { error: 'Failed to update client' },
+      { error: 'Failed in PUT (acting as DELETE for diagnostic)' },
       { status: 500 }
     );
   }
