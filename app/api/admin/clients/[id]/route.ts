@@ -4,7 +4,7 @@ import { verify } from 'jsonwebtoken';
 import { prisma } from '../../../../lib/prisma';
 import { deleteClientFolder, renameClientFolder } from '../../../../lib/googleDrive';
 
-// Helper function to verify admin authentication (restored)
+// Helper function to verify admin authentication
 const verifyAdmin = async (request: NextRequest) => {
   const cookieStore = cookies();
   const token = cookieStore.get('admin_token')?.value;
@@ -21,21 +21,17 @@ const verifyAdmin = async (request: NextRequest) => {
   }
 };
 
-// PUT /api/admin/clients/[id] - Update a client (Restored with new context type)
+// PUT /api/admin/clients/[id] - Update a client
 export async function PUT(
   request: NextRequest,
-  context: { params?: { [key: string]: string | string[] | undefined } } // More generic context type
+  context: { params: { id: string } } // Reverted to standard context type
 ) {
   const isAdmin = await verifyAdmin(request);
   if (!isAdmin) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  // Type guard and extraction for clientId
-  if (!context.params || typeof context.params.id !== 'string') {
-    return NextResponse.json({ error: 'Client ID must be a string and is required in params.' }, { status: 400 });
-  }
-  const clientId: string = context.params.id;
+  const clientId = context.params.id; // Directly use id from params
 
   try {
     const { username, password } = await request.json();
@@ -97,21 +93,17 @@ export async function PUT(
   }
 }
 
-// DELETE /api/admin/clients/[id] - Delete a client (Restored with new context type)
+// DELETE /api/admin/clients/[id] - Delete a client
 export async function DELETE(
   request: NextRequest,
-  context: { params?: { [key: string]: string | string[] | undefined } } // More generic context type
+  context: { params: { id: string } } // Reverted to standard context type
 ) {
   const isAdmin = await verifyAdmin(request);
   if (!isAdmin) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  // Type guard and extraction for clientId
-  if (!context.params || typeof context.params.id !== 'string') {
-    return NextResponse.json({ error: 'Client ID must be a string and is required in params.' }, { status: 400 });
-  }
-  const clientId: string = context.params.id;
+  const clientId = context.params.id; // Directly use id from params
 
   try {
     const clientData = await prisma.client.findUnique({
