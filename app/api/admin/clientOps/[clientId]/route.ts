@@ -77,7 +77,8 @@ export async function PUT(
 
     if (username !== currentClient.username && currentClient.folderId) {
       try {
-        await renameClientFolder(currentClient.folderId, username);
+        // await renameClientFolder(currentClient.folderId, username);
+        console.log('Simulating renameClientFolder call (commented out)'); // Added for clarity
       } catch (driveError) {
         console.error('Google Drive folder rename failed:', driveError);
         // Optionally, decide if this error should prevent client update
@@ -85,7 +86,7 @@ export async function PUT(
       }
     }
 
-    return NextResponse.json({ message: "PUT: renameClientFolder logic active, update commented"}); // Placeholder
+    return NextResponse.json({ message: "PUT: renameClientFolder call commented, structure active"}); // Placeholder
   } catch (error) {
     console.error('Error updating client:', error);
     // Check if the error is from request.json() parsing, e.g., invalid JSON
