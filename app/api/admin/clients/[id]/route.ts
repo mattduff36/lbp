@@ -1,46 +1,121 @@
 import { NextRequest, NextResponse } from 'next/server';
-// import { cookies } from 'next/headers'; // Not needed for simplified version
-// import { verify } from 'jsonwebtoken'; // Not needed for simplified version
-// import { prisma } from '../../../../lib/prisma'; // Not needed for simplified version
-// import { deleteClientFolder, renameClientFolder } from '../../../../lib/googleDrive'; // Not needed for simplified version
+import { cookies } from 'next/headers';
+import { verify } from 'jsonwebtoken';
+import { prisma } from '../../../../lib/prisma';
+import { deleteClientFolder, renameClientFolder } from '../../../../lib/googleDrive';
 
-// PUT /api/admin/clients/[id] - Update a client (Simplified for diagnosis)
+// Helper function to verify admin authentication (restored)
+const verifyAdmin = async (request: NextRequest) => {
+  const cookieStore = cookies();
+  const token = cookieStore.get('admin_token')?.value;
+
+  if (!token) {
+    return false;
+  }
+
+  try {
+    const decoded = verify(token, process.env.JWT_SECRET!);
+    return decoded;
+  } catch (error) {
+    return false;
+  }
+};
+
+// PUT /api/admin/clients/[id] - Update a client (Restored with new context type)
 export async function PUT(
   request: NextRequest,
-  context: { params: { id: string } }
+  context: { params?: { [key: string]: string | string[] | undefined } } // More generic context type
 ) {
-  // Basic check and response
-  if (!context.params || !context.params.id) {
-    return NextResponse.json({ error: 'ID not found in params' }, { status: 400 });
-  }
-  const { id } = context.params;
-  return NextResponse.json({ message: `PUT request received for ID: ${id}` });
-}
-
-/* // Temporarily commented out DELETE function for diagnosis
-export async function DELETE(
-  request: NextRequest,
-  context: { params: { id: string } }
-) {
-  const verifyAdmin = async (req: NextRequest) => {
-    const cookieStore = cookies();
-    const token = cookieStore.get('admin_token')?.value;
-    if (!token) return false;
-    try {
-      return verify(token, process.env.JWT_SECRET!);
-    } catch (error) {
-      return false;
-    }
-  };
-
   const isAdmin = await verifyAdmin(request);
   if (!isAdmin) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
+  // Type guard and extraction for clientId
+  if (!context.params || typeof context.params.id !== 'string') {
+    return NextResponse.json({ error: 'Client ID must be a string and is required in params.' }, { status: 400 });
+  }
+  const clientId: string = context.params.id;
+
+  try {
+    const { username, password } = await request.json();
+
+    if (!username || !password) {
+      return NextResponse.json(
+        { error: 'Username and password are required' },
+        { status: 400 }
+      );
+    }
+
+    const currentClient = await prisma.client.findUnique({
+      where: { id: clientId },
+      select: { username: true, folderId: true },
+    });
+
+    if (!currentClient) {
+      return NextResponse.json(
+        { error: 'Client not found' },
+        { status: 404 }
+      );
+    }
+
+    const existingClient = await prisma.client.findFirst({
+      where: {
+        username,
+        NOT: {
+          id: clientId,
+        },
+      },
+    });
+
+    if (existingClient) {
+      return NextResponse.json(
+        { error: 'Username already exists' },
+        { status: 400 }
+      );
+    }
+
+    if (username !== currentClient.username && currentClient.folderId) {
+      await renameClientFolder(currentClient.folderId, username);
+    }
+
+    const updatedClient = await prisma.client.update({
+      where: { id: clientId },
+      data: {
+        username,
+        password,
+      },
+    });
+
+    return NextResponse.json({ client: updatedClient });
+  } catch (error) {
+    console.error('Error updating client:', error);
+    return NextResponse.json(
+      { error: 'Failed to update client' },
+      { status: 500 }
+    );
+  }
+}
+
+// DELETE /api/admin/clients/[id] - Delete a client (Restored with new context type)
+export async function DELETE(
+  request: NextRequest,
+  context: { params?: { [key: string]: string | string[] | undefined } } // More generic context type
+) {
+  const isAdmin = await verifyAdmin(request);
+  if (!isAdmin) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
+  // Type guard and extraction for clientId
+  if (!context.params || typeof context.params.id !== 'string') {
+    return NextResponse.json({ error: 'Client ID must be a string and is required in params.' }, { status: 400 });
+  }
+  const clientId: string = context.params.id;
+
   try {
     const clientData = await prisma.client.findUnique({
-      where: { id: context.params.id },
+      where: { id: clientId },
       select: { folderId: true },
     });
 
@@ -49,7 +124,7 @@ export async function DELETE(
     }
 
     await prisma.client.delete({
-      where: { id: context.params.id },
+      where: { id: clientId },
     });
 
     return NextResponse.json({ success: true });
@@ -60,5 +135,4 @@ export async function DELETE(
       { status: 500 }
     );
   }
-}
-*/ 
+} 
