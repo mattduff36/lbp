@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 // import { cookies } from 'next/headers'; // Commented out as verifyAdmin is commented
 // import { verify } from 'jsonwebtoken'; // Commented out as verifyAdmin is commented
-import { prisma } from '../../../../lib/prisma'; // Keep for now, was in passing test-route
+// import { prisma } from '../../../../lib/prisma'; // COMMENTED OUT FOR DIAGNOSTIC
 // Google Drive imports removed for now to stabilize build
 // import { deleteClientFolder, renameClientFolder } from '../../../../lib/googleDrive';
 
@@ -26,7 +26,7 @@ const verifyAdmin = async (request: NextRequest) => {
 
 // PUT /api/admin/clientOps/[clientId] - Update a client
 export async function PUT(
-  request: NextRequest, // request param kept for signature, though not used if verifyAdmin is out
+  request: NextRequest, // request param kept for signature
   context: { params: { clientId: string } }
 ) {
   // const isAdmin = await verifyAdmin(request); // COMMENTED OUT FOR DIAGNOSTIC
@@ -39,8 +39,7 @@ export async function PUT(
     return NextResponse.json({ error: 'Client ID is missing' }, { status: 400 });
   }
 
-  // try...catch block removed in previous step, PUT handler is now direct
-  return NextResponse.json({ message: "Extremely minimal PUT, no verifyAdmin, no DB calls" });
+  return NextResponse.json({ message: "Extremely minimal PUT, no verifyAdmin, no DB calls, no prisma import" });
 }
 
 /* // DELETE handler commented out for diagnostic
