@@ -4,6 +4,13 @@ import { verify } from 'jsonwebtoken';
 import { prisma } from '../../../../lib/prisma';
 import { deleteClientFolder, renameClientFolder } from '../../../../lib/googleDrive';
 
+// Define an interface for the route context
+interface RouteContext {
+  params: {
+    id: string;
+  };
+}
+
 // Helper function to verify admin authentication
 const verifyAdmin = async (request: NextRequest) => {
   const cookieStore = cookies();
@@ -24,7 +31,7 @@ const verifyAdmin = async (request: NextRequest) => {
 // PUT /api/admin/clients/[id] - Update a client
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: RouteContext
 ) {
   const isAdmin = await verifyAdmin(request);
   if (!isAdmin) {
@@ -43,7 +50,7 @@ export async function PUT(
 
     // Get the current client data
     const currentClient = await prisma.client.findUnique({
-      where: { id: params.id },
+      where: { id: context.params.id },
       select: { username: true, folderId: true },
     });
 
@@ -59,7 +66,7 @@ export async function PUT(
       where: {
         username,
         NOT: {
-          id: params.id,
+          id: context.params.id,
         },
       },
     });
@@ -78,7 +85,7 @@ export async function PUT(
 
     // Update the client in the database
     const client = await prisma.client.update({
-      where: { id: params.id },
+      where: { id: context.params.id },
       data: {
         username,
         password,
@@ -98,7 +105,7 @@ export async function PUT(
 // DELETE /api/admin/clients/[id] - Delete a client
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: RouteContext
 ) {
   const isAdmin = await verifyAdmin(request);
   if (!isAdmin) {
@@ -107,19 +114,19 @@ export async function DELETE(
 
   try {
     // Get the client to find their folder ID
-    const client = await prisma.client.findUnique({
-      where: { id: params.id },
+    const clientData = await prisma.client.findUnique({
+      where: { id: context.params.id },
       select: { folderId: true },
     });
 
-    if (client?.folderId) {
+    if (clientData?.folderId) {
       // Delete the Google Drive folder
-      await deleteClientFolder(client.folderId);
+      await deleteClientFolder(clientData.folderId);
     }
 
     // Delete the client from the database
     await prisma.client.delete({
-      where: { id: params.id },
+      where: { id: context.params.id },
     });
 
     return NextResponse.json({ success: true });
