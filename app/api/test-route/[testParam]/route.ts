@@ -2,9 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 
 export async function PUT(
   request: NextRequest,
-  context: { params: { testParam: string } }
+  { params }: { params: { testParam: string } }
 ) {
-  const { testParam } = context.params;
+  const { testParam } = params;
   if (!testParam) {
     return NextResponse.json({ error: 'testParam not found in params' }, { status: 400 });
   }
@@ -13,9 +13,9 @@ export async function PUT(
 
 export async function GET(
     request: NextRequest,
-    context: { params: { testParam: string } }
+    { params }: { params: { testParam: string } }
 ) {
-    const { testParam } = context.params;
+    const { testParam } = params;
     if (!testParam) {
         return NextResponse.json({ error: 'testParam not found in params' }, { status: 400 });
     }
