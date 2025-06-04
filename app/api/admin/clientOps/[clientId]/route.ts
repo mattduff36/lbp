@@ -77,16 +77,24 @@ export async function PUT(
 
     if (username !== currentClient.username && currentClient.folderId) {
       try {
+        // TODO: Investigate Vercel build type error when the following line is active.
+        // For now, Google Drive folder renaming on username change is disabled.
         // await renameClientFolder(currentClient.folderId, username);
-        console.log('Simulating renameClientFolder call (commented out)'); // Added for clarity
+        console.log('Google Drive folder rename is temporarily disabled due to a build issue.');
       } catch (driveError) {
-        console.error('Google Drive folder rename failed:', driveError);
-        // Optionally, decide if this error should prevent client update
-        // For now, proceeding with DB update even if Drive rename fails
+        console.error('Google Drive folder rename failed (code currently disabled):', driveError);
       }
     }
 
-    return NextResponse.json({ message: "PUT: renameClientFolder call commented, structure active"}); // Placeholder
+    const updatedClient = await prisma.client.update({
+      where: { id: clientId },
+      data: {
+        username,
+        password, // Ensure password hashing if it was done on creation
+      },
+    });
+
+    return NextResponse.json({ client: updatedClient });
   } catch (error) {
     console.error('Error updating client:', error);
     // Check if the error is from request.json() parsing, e.g., invalid JSON
