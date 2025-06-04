@@ -37,45 +37,8 @@ export async function PUT(
     return NextResponse.json({ error: 'Client ID is missing' }, { status: 400 });
   }
 
-  // Original PUT try...catch block is replaced by DELETE's try...catch for diagnostics
-  try {
-    // Copied from DELETE handler
-    const clientData = await prisma.client.findUnique({
-      where: { id: clientId },
-      select: { folderId: true },
-    });
-
-    /* // Google Drive call commented out for diagnostic
-    if (clientData?.folderId) {
-      try {
-        await deleteClientFolder(clientData.folderId);
-      } catch (driveError) {
-        console.error('Google Drive folder deletion failed:', driveError);
-        // Optionally, decide if this error should prevent client deletion
-        // For now, proceeding with DB deletion even if Drive deletion fails
-      }
-    }
-    */
-    console.log('PUT (acting as DELETE): Google Drive call is temporarily commented out for diagnostics.');
-
-    await prisma.client.delete({
-      where: { id: clientId },
-    });
-    // End of critically copied logic from DELETE that performs actual deletion
-
-    return NextResponse.json({ message: "PUT handler with DELETE's logic (Drive call commented) - DIAGNOSTIC", success: true });
-  } catch (error) {
-    // Copied from DELETE handler
-    console.error('Error in PUT (acting as DELETE for diagnostic):', error);
-    // Check for specific Prisma error for record not found if that's useful
-    if ((error as any).code === 'P2025') {
-      return NextResponse.json({ error: 'Client not found (in PUT as DELETE diagnostic)' }, { status: 404 });
-    }
-    return NextResponse.json(
-      { error: 'Failed in PUT (acting as DELETE for diagnostic)' },
-      { status: 500 }
-    );
-  }
+  // Entire try...catch block (copied from DELETE) is removed for this baseline test.
+  return NextResponse.json({ message: "Minimal PUT for build baseline verification" });
 }
 
 // DELETE /api/admin/clientOps/[clientId] - Delete a client
