@@ -41,6 +41,7 @@ export async function PUT(
   return NextResponse.json({ message: "Minimal PUT for build baseline verification" });
 }
 
+/* // DELETE handler commented out for diagnostic
 // DELETE /api/admin/clientOps/[clientId] - Delete a client
 export async function DELETE(
   request: NextRequest,
@@ -88,4 +89,5 @@ export async function DELETE(
       { status: 500 }
     );
   }
-} 
+}
+*/ 
