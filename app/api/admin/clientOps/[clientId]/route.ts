@@ -75,7 +75,6 @@ export async function PUT(
       );
     }
 
-    /*
     if (username !== currentClient.username && currentClient.folderId) {
       try {
         await renameClientFolder(currentClient.folderId, username);
@@ -86,17 +85,7 @@ export async function PUT(
       }
     }
 
-    const updatedClient = await prisma.client.update({
-      where: { id: clientId },
-      data: {
-        username,
-        password, // Ensure password hashing if it was done on creation
-      },
-    });
-
-    return NextResponse.json({ client: updatedClient });
-    */
-    return NextResponse.json({ message: "PUT: findFirst active, rename/update commented"}); // Placeholder
+    return NextResponse.json({ message: "PUT: renameClientFolder logic active, update commented"}); // Placeholder
   } catch (error) {
     console.error('Error updating client:', error);
     // Check if the error is from request.json() parsing, e.g., invalid JSON
