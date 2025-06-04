@@ -44,11 +44,13 @@ export async function PUT(
 
   try {
     const body = await request.json();
-    const { name, email, driveFolderId, oldName } = body;
+    // Adjusted to match Prisma schema: username, folderId. oldUsername for Drive logic.
+    // Email is received but not used for DB operations as it's not in the Client model.
+    const { username, email, folderId, oldUsername } = body; 
 
-    if (!name || !email) {
+    if (!username) { // Email validation removed as it's not in the Client model
       return NextResponse.json(
-        { error: 'Name and email are required' },
+        { error: 'Username is required' }, // Updated error message
         { status: 400 }
       );
     }
@@ -62,42 +64,33 @@ export async function PUT(
       return NextResponse.json({ error: 'Client not found' }, { status: 404 });
     }
 
-    // Check if the new name or email is already taken by another client
-    if (name !== existingClient.name || email !== existingClient.email) {
+    // Check if the new username is already taken by another client
+    if (username !== existingClient.username) { // Email check removed
         const conflictingClient = await prisma.client.findFirst({
             where: {
-                OR: [
-                    { name: name, NOT: { id: clientId } },
-                    { email: email, NOT: { id: clientId } },
-                ],
+                // Only check for username conflict
+                username: username, NOT: { id: clientId }
             },
         });
         if (conflictingClient) {
-            return NextResponse.json({ error: 'Name or email already in use by another client' }, { status: 409 });
+            return NextResponse.json({ error: 'Username already in use by another client' }, { status: 409 });
         }
     }
     
-    let updatedDriveFolderId = existingClient.driveFolderId;
+    let updatedDriveFolderId = existingClient.folderId; // Use folderId from schema
 
-    // Rename Google Drive folder if name changed and driveFolderId exists
-    if (driveFolderId && name !== oldName && oldName) {
+    // Rename Google Drive folder if username changed and folderId exists
+    if (folderId && username !== oldUsername && oldUsername) { // Use folderId and oldUsername
       try {
-        const newDriveFolderId = await renameClientFolder(driveFolderId, name);
+        const newDriveFolderId = await renameClientFolder(folderId, username); // Use username
         if (newDriveFolderId) {
-          updatedDriveFolderId = newDriveFolderId; // Update if rename returns a new ID (though typically it doesn't)
-          console.log(`Client folder ${oldName} (ID: ${driveFolderId}) renamed to ${name}.`);
+          updatedDriveFolderId = newDriveFolderId; 
+          console.log(`Client folder ${oldUsername} (ID: ${folderId}) renamed to ${username}.`);
         } else {
-          // If renameClientFolder returns null or undefined, it might indicate an issue
-          // or that the folder was not found, or an error occurred.
-          // Decide if this should be a blocking error or just a warning.
-          // For now, we'll log it and proceed without updating driveFolderId if rename fails this way.
           console.warn(`Could not rename folder for client ID ${clientId}. Proceeding with DB update.`);
         }
       } catch (driveError) {
         console.error(`Error renaming Google Drive folder for client ${clientId}:`, driveError);
-        // Depending on policy, you might want to stop the update or allow it to proceed
-        // For now, let's allow DB update to proceed but log the error
-        // return NextResponse.json({ error: 'Failed to rename client folder on Google Drive' }, { status: 500 });
       }
     }
 
@@ -105,9 +98,9 @@ export async function PUT(
     const updatedClient = await prisma.client.update({
       where: { id: clientId },
       data: {
-        name,
-        email,
-        driveFolderId: updatedDriveFolderId, // Use the potentially updated driveFolderId
+        username, // Use username from schema
+        folderId: updatedDriveFolderId, // Use folderId from schema
+        // Email is not updated as it's not in the Client model
       },
     });
 
@@ -117,8 +110,8 @@ export async function PUT(
     if ((error as any).code === 'P2025') {
       return NextResponse.json({ error: 'Client not found' }, { status: 404 });
     }
-     if ((error as any).code === 'P2002') { // Unique constraint failed
-      return NextResponse.json({ error: 'Client name or email already exists' }, { status: 409 });
+     if ((error as any).code === 'P2002') { // Unique constraint failed (likely on username)
+      return NextResponse.json({ error: 'Username already exists' }, { status: 409 });
     }
     return NextResponse.json(
       { error: 'Failed to update client' },
@@ -143,7 +136,7 @@ export async function DELETE(
   }
 
   try {
-    // First, retrieve the client to get the driveFolderId
+    // First, retrieve the client to get the folderId
     const client = await prisma.client.findUnique({
       where: { id: clientId },
     });
@@ -152,16 +145,13 @@ export async function DELETE(
       return NextResponse.json({ error: 'Client not found' }, { status: 404 });
     }
 
-    // If a driveFolderId exists, attempt to delete the Google Drive folder
-    if (client.driveFolderId) {
+    // If a folderId exists, attempt to delete the Google Drive folder
+    if (client.folderId) { // Use folderId from schema
       try {
-        await deleteClientFolder(client.driveFolderId);
-        console.log(`Google Drive folder for client ${clientId} (ID: ${client.driveFolderId}) deleted successfully.`);
+        await deleteClientFolder(client.folderId); // Use folderId from schema
+        console.log(`Google Drive folder for client ${clientId} (ID: ${client.folderId}) deleted successfully.`);
       } catch (driveError) {
         console.error(`Error deleting Google Drive folder for client ${clientId}:`, driveError);
-        // Decide if this should be a blocking error.
-        // For now, we'll log the error and proceed with deleting the client from the DB.
-        // return NextResponse.json({ error: 'Failed to delete client folder from Google Drive. Database record not deleted.' }, { status: 500 });
       }
     }
 
@@ -173,7 +163,7 @@ export async function DELETE(
     return NextResponse.json({ success: true, message: "Client and associated Google Drive folder (if any) deleted successfully." });
   } catch (error) {
     console.error('Error deleting client:', error);
-    if ((error as any).code === 'P2025') { // Prisma error for record not found (already handled by findUnique check)
+    if ((error as any).code === 'P2025') { 
       return NextResponse.json({ error: 'Client not found' }, { status: 404 });
     }
     return NextResponse.json(
