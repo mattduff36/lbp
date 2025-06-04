@@ -46,28 +46,4 @@ export async function PUT(
   //   );
   // }
   return NextResponse.json({ message: `Simplified PUT for client ${clientId}` });
-}
-
-// DELETE /api/admin/clients/[id] - Delete a client (Simplified for diagnosis)
-export async function DELETE(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
-  // const isAdmin = await verifyAdmin(request);
-  // if (!isAdmin) {
-  //   return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  // }
-
-  const clientId = params.id;
-
-  // try {
-  //   // ... (rest of the original logic commented out)
-  // } catch (error) {
-  //   console.error('Error deleting client:', error);
-  //   return NextResponse.json(
-  //     { error: 'Failed to delete client' },
-  //     { status: 500 }
-  //   );
-  // }
-  return NextResponse.json({ message: `Simplified DELETE for client ${clientId}` });
 } 
