@@ -47,7 +47,6 @@ export async function PUT(
       );
     }
 
-    /*
     const currentClient = await prisma.client.findUnique({
       where: { id: clientId },
       select: { username: true, folderId: true },
@@ -60,6 +59,7 @@ export async function PUT(
       );
     }
 
+    /*
     const existingClientWithNewUsername = await prisma.client.findFirst({
       where: {
         username,
@@ -96,7 +96,7 @@ export async function PUT(
 
     return NextResponse.json({ client: updatedClient });
     */
-    return NextResponse.json({ message: "PUT: request.json() and validation active"}); // Placeholder
+    return NextResponse.json({ message: "PUT: findUnique active, other DB/Drive calls commented"}); // Placeholder
   } catch (error) {
     console.error('Error updating client:', error);
     // Check if the error is from request.json() parsing, e.g., invalid JSON
