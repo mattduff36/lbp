@@ -23,17 +23,17 @@ const verifyAdmin = async (request: NextRequest) => {
 };
 */
 
-// PUT /api/admin/clients/[id] - Update a client (Simplified for diagnosis)
+// PUT /api/admin/clients/[clientId] - Update a client (Simplified for diagnosis)
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: { clientId: string } }
 ) {
   // const isAdmin = await verifyAdmin(request);
   // if (!isAdmin) {
   //   return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   // }
 
-  const clientId = params.id;
+  const clientIdentifier = params.clientId;
 
   // try {
   //   const { username, password } = await request.json();
@@ -45,5 +45,5 @@ export async function PUT(
   //     { status: 500 }
   //   );
   // }
-  return NextResponse.json({ message: `Simplified PUT for client ${clientId}` });
+  return NextResponse.json({ message: `Simplified PUT for client ${clientIdentifier}` });
 } 
