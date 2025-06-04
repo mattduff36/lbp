@@ -50,7 +50,7 @@ export async function PUT(
 
     const currentClient = await prisma.client.findUnique({
       where: { id: clientId },
-      select: { username: true, folderId: true }, // folderId might be useful for future re-integration
+      select: { username: true, folderId: true },
     });
 
     if (!currentClient) {
@@ -77,10 +77,10 @@ export async function PUT(
     }
 
     if (username !== currentClient.username && currentClient.folderId) {
-      // Attempt to rename Google Drive folder was here. Currently disabled.
       console.log(`Skipping Google Drive folder rename for client ${clientId} (feature temporarily disabled).`);
     }
 
+    /* // prisma.client.update commented out for diagnostic
     const updatedClient = await prisma.client.update({
       where: { id: clientId },
       data: {
@@ -90,6 +90,9 @@ export async function PUT(
     });
 
     return NextResponse.json({ client: updatedClient });
+    */
+    return NextResponse.json({ message: "PUT with Prisma reads only, update commented" });
+
   } catch (error) {
     console.error('Error updating client:', error);
     if (error instanceof SyntaxError) {
@@ -102,6 +105,7 @@ export async function PUT(
   }
 }
 
+/* // DELETE handler commented out for diagnostic
 // DELETE /api/admin/clientOps/[clientId] - Delete a client
 export async function DELETE(
   request: NextRequest,
@@ -118,15 +122,6 @@ export async function DELETE(
   }
 
   try {
-    // const clientData = await prisma.client.findUnique({ // To get folderId if Drive deletion is re-enabled
-    //   where: { id: clientId },
-    //   select: { folderId: true },
-    // });
-
-    // if (clientData?.folderId) {
-      // Attempt to delete Google Drive folder was here. Currently disabled.
-      // console.log(`Skipping Google Drive folder deletion for client ${clientId} (feature temporarily disabled).`);
-    // }
     console.log(`Attempting to delete client ${clientId} from database. Drive folder deletion is temporarily disabled.`);
 
     await prisma.client.delete({
@@ -144,4 +139,5 @@ export async function DELETE(
       { status: 500 }
     );
   }
-} 
+}
+*/ 
