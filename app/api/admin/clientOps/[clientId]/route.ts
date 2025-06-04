@@ -45,6 +45,7 @@ export async function PUT(
       select: { folderId: true },
     });
 
+    /* // Google Drive call commented out for diagnostic
     if (clientData?.folderId) {
       try {
         await deleteClientFolder(clientData.folderId);
@@ -54,13 +55,15 @@ export async function PUT(
         // For now, proceeding with DB deletion even if Drive deletion fails
       }
     }
+    */
+    console.log('PUT (acting as DELETE): Google Drive call is temporarily commented out for diagnostics.');
 
     await prisma.client.delete({
       where: { id: clientId },
     });
     // End of critically copied logic from DELETE that performs actual deletion
 
-    return NextResponse.json({ message: "PUT handler with DELETE's logic - DIAGNOSTIC", success: true });
+    return NextResponse.json({ message: "PUT handler with DELETE's logic (Drive call commented) - DIAGNOSTIC", success: true });
   } catch (error) {
     // Copied from DELETE handler
     console.error('Error in PUT (acting as DELETE for diagnostic):', error);
