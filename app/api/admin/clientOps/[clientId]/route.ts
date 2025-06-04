@@ -37,6 +37,7 @@ export async function PUT(
     return NextResponse.json({ error: 'Client ID is missing' }, { status: 400 });
   }
 
+  /*
   try {
     const { username, password } = await request.json();
 
@@ -101,6 +102,8 @@ export async function PUT(
       { status: 500 }
     );
   }
+  */
+  return NextResponse.json({ message: "PUT logic (try...catch block) commented out" });
 }
 
 // DELETE /api/admin/clientOps/[clientId] - Delete a client
