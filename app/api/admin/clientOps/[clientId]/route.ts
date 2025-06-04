@@ -37,7 +37,6 @@ export async function PUT(
     return NextResponse.json({ error: 'Client ID is missing' }, { status: 400 });
   }
 
-  /*
   try {
     const { username, password } = await request.json();
 
@@ -48,6 +47,7 @@ export async function PUT(
       );
     }
 
+    /*
     const currentClient = await prisma.client.findUnique({
       where: { id: clientId },
       select: { username: true, folderId: true },
@@ -95,15 +95,19 @@ export async function PUT(
     });
 
     return NextResponse.json({ client: updatedClient });
+    */
+    return NextResponse.json({ message: "PUT: request.json() and validation active"}); // Placeholder
   } catch (error) {
     console.error('Error updating client:', error);
+    // Check if the error is from request.json() parsing, e.g., invalid JSON
+    if (error instanceof SyntaxError) {
+      return NextResponse.json({ error: 'Invalid request body' }, { status: 400 });
+    }
     return NextResponse.json(
       { error: 'Failed to update client' },
       { status: 500 }
     );
   }
-  */
-  return NextResponse.json({ message: "PUT logic (try...catch block) commented out" });
 }
 
 // DELETE /api/admin/clientOps/[clientId] - Delete a client
