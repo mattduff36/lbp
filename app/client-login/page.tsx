@@ -9,12 +9,42 @@ export default function ClientLoginPage() {
   const [error, setError] = useState<string | null>(null);
 
   const handleLogin = async (username: string, password: string) => {
+    setError(null); // Clear previous errors
+
+    const trimmedUsername = username.trim();
+    const trimmedPassword = password.trim(); // Also trim password
+
+    if (!trimmedUsername) {
+      setError("Username is required.");
+      return;
+    }
+
+    if (!trimmedPassword) {
+      setError("Password is required.");
+      return;
+    }
+
     try {
-      // In a real implementation, you would validate against a database
-      // For now, we'll just redirect to the client's gallery page
-      router.push(`/client-login/${username}`);
+      const response = await fetch('/api/clients/validate-credentials', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ username: trimmedUsername, password: trimmedPassword }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok && data.success) {
+        // Credentials are valid, proceed to gallery
+        router.push(`/client-login/${trimmedUsername}`);
+      } else {
+        // Invalid credentials or other server-side error reported by the API
+        setError(data.message || 'Invalid username or password. Please try again.');
+      }
     } catch (err) {
-      setError('Invalid username or password');
+      console.error("Login process error:", err);
+      setError('An unexpected error occurred during login. Please check your connection and try again.');
     }
   };
 

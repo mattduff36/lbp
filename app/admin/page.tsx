@@ -127,7 +127,7 @@ export default function AdminPage() {
             {error && <p className="text-red-500 text-sm mb-4 text-center">{error}</p>}
             <button
               type="submit"
-              className="w-full bg-LBPBlue hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-md transition duration-150 ease-in-out focus:outline-none focus:ring-2 focus:ring-LBPBlue focus:ring-opacity-50 disabled:opacity-50"
+              className="w-full px-6 py-2.5 bg-LBPBlue text-white font-medium rounded-md shadow-lg border-2 border-LBPBlue/70 hover:bg-LBPBlue/80 hover:border-LBPBlue hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-LBPBlue focus:ring-offset-2 focus:ring-offset-gray-800 transition-all duration-150 ease-in-out disabled:opacity-50"
               disabled={isLoading}
             >
               {isLoading ? 'Logging in...' : 'Login'}

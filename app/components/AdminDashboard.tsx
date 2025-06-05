@@ -23,13 +23,10 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
     setGallerySyncStatus(prev => ({ ...prev, [category]: { isLoading: true, message: 'Syncing...', isError: false } }));
     try {
       const response = await fetch(`/api/portfolio-images?category=${category.toLowerCase()}&performSync=true`);
-      const result = await response.json(); // Assuming API returns JSON
+      const result = await response.json();
       if (response.ok) {
-        // The API currently returns the list of images, not a specific sync status object.
-        // For simplicity, we'll just mark it as success if response.ok is true.
         setGallerySyncStatus(prev => ({ ...prev, [category]: { isLoading: false, message: 'Sync triggered successfully.', isError: false } }));
       } else {
-        // Use error from response if available, otherwise a generic one
         const errorMessage = result.error || 'Failed to trigger sync.';
         setGallerySyncStatus(prev => ({ ...prev, [category]: { isLoading: false, message: errorMessage, isError: true } }));
       }
@@ -89,26 +86,26 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
   };
 
   return (
-    <div>
-      <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-medium text-gray-300 tracking-wider uppercase font-montserrat">
-          Manual Syncing
-        </h1>
-        <button
-          onClick={onLogout}
-          className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-md transition-colors"
-        >
-          Logout
-        </button>
-      </div>
-
+    <div className="p-8">
       <div className="max-w-4xl mx-auto">
+        <div className="flex justify-between items-center mb-8">
+          <h1 className="text-3xl font-medium text-gray-300 tracking-wider uppercase font-montserrat">
+            Manual Syncing
+          </h1>
+          <button
+            onClick={onLogout}
+            className="px-4 py-1.5 bg-red-600 text-white font-medium rounded-md shadow-lg border-2 border-red-600/70 hover:bg-red-700 hover:border-red-700 hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:ring-offset-gray-800 transition-all duration-150 ease-in-out disabled:opacity-50"
+          >
+            Logout
+          </button>
+        </div>
+
         <section className="mb-10 bg-gray-800 p-6 rounded-lg shadow-xl">
           <h2 className="text-2xl font-semibold mb-4 border-b border-gray-700 pb-2 text-LBPBlue">Hero Images</h2>
           <button
             onClick={handleSyncHero}
             disabled={heroSyncStatus?.isLoading}
-            className="bg-LBPBlue hover:bg-blue-700 text-white font-semibold py-2 px-6 rounded-md transition duration-150 ease-in-out disabled:opacity-50 disabled:cursor-not-allowed"
+            className="px-6 py-2.5 bg-LBPBlue text-white font-medium rounded-md shadow-lg border-2 border-LBPBlue/70 hover:bg-LBPBlue/80 hover:border-LBPBlue hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-LBPBlue focus:ring-offset-2 focus:ring-offset-gray-800 transition-all duration-150 ease-in-out disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {heroSyncStatus?.isLoading ? 'Syncing...' : 'Sync All Hero Images'}
           </button>
@@ -124,7 +121,7 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
           <button
             onClick={handleSyncAllPortfolio}
             disabled={allPortfolioSyncStatus?.isLoading}
-            className="bg-LBPBlue hover:bg-blue-700 text-white font-semibold py-2 px-6 rounded-md transition duration-150 ease-in-out mb-3 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="px-6 py-2.5 bg-LBPBlue text-white font-medium rounded-md shadow-lg border-2 border-LBPBlue/70 hover:bg-LBPBlue/80 hover:border-LBPBlue hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-LBPBlue focus:ring-offset-2 focus:ring-offset-gray-800 transition-all duration-150 ease-in-out mb-3 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {allPortfolioSyncStatus?.isLoading ? 'Syncing All...' : 'Sync All Portfolio Galleries'}
           </button>
@@ -144,7 +141,7 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
                 <button
                   onClick={() => handleSyncGallery(gallery.localDir)}
                   disabled={gallerySyncStatus[gallery.localDir]?.isLoading}
-                  className="w-full bg-LBPBlue/80 hover:bg-LBPBlue text-white font-semibold py-2 px-4 rounded-md transition duration-150 ease-in-out disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full px-4 py-1.5 bg-LBPBlue text-white font-medium rounded-md shadow-lg border-2 border-LBPBlue/70 hover:bg-LBPBlue/80 hover:border-LBPBlue hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-LBPBlue focus:ring-offset-2 focus:ring-offset-gray-700 transition-all duration-150 ease-in-out disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {gallerySyncStatus[gallery.localDir]?.isLoading ? 'Syncing...' : `Sync ${gallery.name}`}
                 </button>

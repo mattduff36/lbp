@@ -105,7 +105,7 @@ export default function ClientManagement({ onLogout }: ClientManagementProps) {
           </h1>
           <button
             onClick={onLogout}
-            className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-md transition-colors"
+            className="px-4 py-1.5 bg-red-600 text-white font-medium rounded-md shadow-lg border-2 border-red-600/70 hover:bg-red-700 hover:border-red-700 hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:ring-offset-gray-800 transition-all duration-150 ease-in-out disabled:opacity-50"
           >
             Logout
           </button>
@@ -151,7 +151,7 @@ export default function ClientManagement({ onLogout }: ClientManagementProps) {
             </div>
             <button
               type="submit"
-              className="w-full md:w-auto px-6 py-2 bg-LBPBlue hover:bg-LBPBlue/90 text-white rounded-md transition-colors"
+              className="w-full md:w-auto px-6 py-2.5 bg-LBPBlue text-white font-medium rounded-md shadow-lg border-2 border-LBPBlue/70 hover:bg-LBPBlue/80 hover:border-LBPBlue hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-LBPBlue focus:ring-offset-2 focus:ring-offset-gray-800 transition-all duration-150 ease-in-out disabled:opacity-50"
             >
               Add Client
             </button>
@@ -159,73 +159,89 @@ export default function ClientManagement({ onLogout }: ClientManagementProps) {
         </div>
 
         {/* Clients List */}
-        <div className="space-y-4">
-          <h2 className="text-xl font-medium mb-4 text-gray-300">Existing Clients</h2>
-          {clients.map((client) => (
-            <div
-              key={client.id}
-              className="p-4 bg-gray-800 rounded-lg flex items-center justify-between"
-            >
-              {editingClient?.id === client.id ? (
-                <form onSubmit={handleUpdateClient} className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <input
-                    type="text"
-                    value={editingClient.username}
-                    onChange={(e) => setEditingClient({ ...editingClient, username: e.target.value })}
-                    className="px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-LBPBlue"
-                    required
-                  />
-                  <input
-                    type="text"
-                    value={editingClient.password}
-                    onChange={(e) => setEditingClient({ ...editingClient, password: e.target.value })}
-                    className="px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-LBPBlue"
-                    required
-                  />
-                  <div className="md:col-span-2 flex gap-2">
-                    <button
-                      type="submit"
-                      className="px-4 py-2 bg-LBPBlue hover:bg-LBPBlue/90 text-white rounded-md transition-colors"
-                    >
-                      Save
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setEditingClient(null)}
-                      className="px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-md transition-colors"
-                    >
-                      Cancel
-                    </button>
-                  </div>
-                </form>
-              ) : (
-                <>
-                  <div className="flex-1">
-                    <div className="text-gray-300">
-                      <span className="font-medium">Username:</span> {client.username}
-                    </div>
-                    <div className="text-gray-400">
-                      <span className="font-medium">Password:</span> {client.password}
-                    </div>
-                  </div>
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() => setEditingClient(client)}
-                      className="px-4 py-2 bg-LBPBlue hover:bg-LBPBlue/90 text-white rounded-md transition-colors"
-                    >
-                      Edit
-                    </button>
-                    <button
-                      onClick={() => handleDeleteClient(client.id)}
-                      className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-md transition-colors"
-                    >
-                      Delete
-                    </button>
-                  </div>
-                </>
-              )}
-            </div>
-          ))}
+        <div className="mt-8 overflow-x-auto">
+          <h2 className="text-xl font-medium mb-6 text-gray-300">Existing Clients</h2>
+          {clients.length > 0 ? (
+            <table className="w-full text-left border-collapse bg-gray-800 rounded-lg shadow">
+              <thead>
+                <tr className="border-b border-gray-700">
+                  <th className="py-3 px-4 text-sm font-semibold text-gray-300 uppercase tracking-wider">Username</th>
+                  <th className="py-3 px-4 text-sm font-semibold text-gray-300 uppercase tracking-wider">Password</th>
+                  <th className="py-3 px-4 text-sm font-semibold text-gray-300 uppercase tracking-wider text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {clients.map((client) => (
+                  <tr key={client.id} className="border-b border-gray-700 last:border-b-0 hover:bg-gray-700/50 transition-colors duration-150">
+                    {editingClient?.id === client.id ? (
+                      <>
+                        {/* Editing State */}
+                        <td className="py-3 px-4">
+                          <input
+                            type="text"
+                            value={editingClient.username}
+                            onChange={(e) => setEditingClient({ ...editingClient, username: e.target.value })}
+                            className="w-full px-2 py-1 bg-gray-600 border border-gray-500 rounded-md text-white focus:outline-none focus:ring-1 focus:ring-LBPBlue"
+                            required
+                          />
+                        </td>
+                        <td className="py-3 px-4">
+                          <input
+                            type="text" // Consider type="password" if you want to obscure it during edit, though it's already visible
+                            value={editingClient.password}
+                            onChange={(e) => setEditingClient({ ...editingClient, password: e.target.value })}
+                            className="w-full px-2 py-1 bg-gray-600 border border-gray-500 rounded-md text-white focus:outline-none focus:ring-1 focus:ring-LBPBlue"
+                            required
+                          />
+                        </td>
+                        <td className="py-3 px-4 text-right">
+                          <form onSubmit={handleUpdateClient} className="inline-flex gap-2">
+                            <button
+                              type="submit"
+                              className="px-3 py-1 bg-LBPBlue text-white font-medium text-sm rounded-md shadow-lg border-2 border-LBPBlue/70 hover:bg-LBPBlue/80 hover:border-LBPBlue hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-LBPBlue focus:ring-offset-2 focus:ring-offset-gray-700 transition-all duration-150 ease-in-out disabled:opacity-50"
+                            >
+                              Save
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setEditingClient(null)}
+                              className="px-3 py-1 bg-gray-500 text-white font-medium text-sm rounded-md shadow-lg border-2 border-gray-500/70 hover:bg-gray-600 hover:border-gray-600 hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2 focus:ring-offset-gray-700 transition-all duration-150 ease-in-out disabled:opacity-50"
+                            >
+                              Cancel
+                            </button>
+                          </form>
+                        </td>
+                      </>
+                    ) : (
+                      <>
+                        {/* Display State */}
+                        <td className="py-3 px-4 text-gray-300">{client.username}</td>
+                        <td className="py-3 px-4 text-gray-400">{client.password}</td>
+                        <td className="py-3 px-4 text-right">
+                          <div className="inline-flex gap-2">
+                            <button
+                              onClick={() => setEditingClient(client)}
+                              className="px-3 py-1 bg-LBPBlue text-white font-medium text-sm rounded-md shadow-lg border-2 border-LBPBlue/70 hover:bg-LBPBlue/80 hover:border-LBPBlue hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-LBPBlue focus:ring-offset-2 focus:ring-offset-gray-700 transition-all duration-150 ease-in-out disabled:opacity-50"
+                            >
+                              Edit
+                            </button>
+                            <button
+                              onClick={() => handleDeleteClient(client.id)}
+                              className="px-3 py-1 bg-red-600 text-white font-medium text-sm rounded-md shadow-lg border-2 border-red-600/70 hover:bg-red-700 hover:border-red-700 hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:ring-offset-gray-700 transition-all duration-150 ease-in-out disabled:opacity-50"
+                            >
+                              Delete
+                            </button>
+                          </div>
+                        </td>
+                      </>
+                    )}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          ) : (
+            <p className="text-gray-400 text-center py-4">No clients found.</p>
+          )}
         </div>
       </div>
     </div>

@@ -77,10 +77,11 @@ export async function POST(request: Request) {
       );
     }
 
-    // Create Google Drive folder for the client
-    const folderId = await createClientFolder(username);
+    // Create Google Drive folder for the client using a lowercase version of the username
+    const folderNameForDrive = username.toLowerCase();
+    const folderId = await createClientFolder(folderNameForDrive);
 
-    // Create client in database with folder ID
+    // Create client in database with folder ID and original username casing
     const client = await prisma.client.create({
       data: {
         username,

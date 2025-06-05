@@ -170,7 +170,7 @@ export default function ClientGalleryPage() {
           
           <button
             onClick={handleDownloadAll}
-            className="bg-LBPBlue hover:bg-LBPBlue/90 text-white px-6 py-2 rounded-md transition-colors duration-200 disabled:opacity-50"
+            className="bg-LBPBlue text-white px-8 py-3 rounded-md border-2 border-LBPBlue/70 shadow-lg hover:bg-LBPBlue/80 hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-LBPBlue focus:ring-opacity-75 transition-all duration-200 disabled:opacity-50"
             disabled={!username || images.length === 0}
           >
             Download All
