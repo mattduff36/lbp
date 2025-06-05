@@ -22,11 +22,19 @@ const Navbar = () => {
   const pathname = usePathname();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isPortfolioDropdownOpen, setIsPortfolioDropdownOpen] = useState(false);
+  const [isMobilePortfolioDropdownOpen, setIsMobilePortfolioDropdownOpen] = useState(false);
   const portfolioDropdownRef = useRef<HTMLDivElement>(null);
   const portfolioDropdownTimeoutRef = useRef<NodeJS.Timeout>();
 
   const handleToggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
+    if (isMobileMenuOpen) {
+      setIsMobilePortfolioDropdownOpen(false);
+    }
+  };
+
+  const handleToggleMobilePortfolioDropdown = () => {
+    setIsMobilePortfolioDropdownOpen(!isMobilePortfolioDropdownOpen);
   };
 
   const handlePortfolioMouseEnter = () => {
@@ -69,6 +77,15 @@ const Navbar = () => {
 
   const mobileDropdownLinkBaseStyle = "block px-3 py-2 rounded-md text-base font-medium text-gray-300 hover:text-white hover:bg-gray-700 uppercase font-montserrat";
   const mobileDropdownLinkActiveStyle = "block px-3 py-2 rounded-md text-base font-medium bg-gray-700 text-white uppercase font-montserrat";
+  const mobilePortfolioItemStyle = "block px-4 py-2 text-base font-medium text-gray-300 hover:text-white hover:bg-gray-700 uppercase font-montserrat whitespace-nowrap";
+
+  useEffect(() => {
+    if (isMobileMenuOpen || isMobilePortfolioDropdownOpen) {
+      setIsMobileMenuOpen(false);
+      setIsMobilePortfolioDropdownOpen(false);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pathname]);
 
   return (
     <nav className="bg-black shadow-sm border-b border-gray-800 sticky top-0 z-50">
@@ -135,17 +152,60 @@ const Navbar = () => {
 
           {/* Mobile: Visible Primary Links + More Button */}
           <div className="flex items-center md:hidden">
-            {primaryMobileLinks.map((link) => (
-              <Link
-                key={link.name}
-                href={link.href}
-                className={`${pathname === link.href ? activeLinkStyle : baseLinkStyle} mr-3 sm:mr-4`}
-                aria-current={pathname === link.href ? 'page' : undefined}
-                onClick={() => isMobileMenuOpen && setIsMobileMenuOpen(false)}
-              >
-                {link.name}
-              </Link>
-            ))}
+            {primaryMobileLinks.map((link) => {
+              if (link.name === 'Portfolio') {
+                return (
+                  <div key={link.name} className="relative mr-3 sm:mr-4">
+                    <button
+                      type="button"
+                      onClick={handleToggleMobilePortfolioDropdown}
+                      className={`${baseLinkStyle} flex items-center`}
+                      aria-expanded={isMobilePortfolioDropdownOpen}
+                      aria-haspopup="true"
+                    >
+                      Portfolio
+                      <svg
+                        className={`ml-2 h-4 w-4 transition-transform ${isMobilePortfolioDropdownOpen ? 'rotate-180' : ''}`}
+                        fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                      >
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </button>
+                    {isMobilePortfolioDropdownOpen && (
+                      <div className="absolute left-0 top-full mt-1 w-auto min-w-max rounded-md shadow-lg bg-black ring-1 ring-gray-800 z-50 py-1">
+                        {GALLERIES.map((gallery) => (
+                          <Link
+                            key={gallery.localDir}
+                            href={`/portfolio/${gallery.localDir}`}
+                            className={mobilePortfolioItemStyle}
+                            onClick={() => {
+                              setIsMobilePortfolioDropdownOpen(false);
+                              setIsMobileMenuOpen(false);
+                            }}
+                          >
+                            {gallery.name}
+                          </Link>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                );
+              }
+              return (
+                <Link
+                  key={link.name}
+                  href={link.href}
+                  className={`${pathname === link.href ? activeLinkStyle : baseLinkStyle} mr-3 sm:mr-4`}
+                  aria-current={pathname === link.href ? 'page' : undefined}
+                  onClick={() => {
+                    isMobileMenuOpen && setIsMobileMenuOpen(false);
+                    isMobilePortfolioDropdownOpen && setIsMobilePortfolioDropdownOpen(false);
+                  }}
+                >
+                  {link.name}
+                </Link>
+              );
+            })}
             <button
               onClick={handleToggleMobileMenu}
               type="button"
@@ -170,7 +230,7 @@ const Navbar = () => {
       </div>
 
       {/* Mobile Dropdown Menu */}
-      {isMobileMenuOpen && (
+      {isMobileMenuOpen && !isMobilePortfolioDropdownOpen && (
         <div className="md:hidden absolute top-16 inset-x-0 z-40 transform transition-transform duration-300 ease-in-out" id="mobile-menu">
           <div className="pt-2 pb-3 space-y-1 sm:px-3 px-2 bg-black border-t border-gray-800 shadow-lg rounded-b-md">
             {moreDropdownLinks.map((link) => (
@@ -179,7 +239,9 @@ const Navbar = () => {
                 href={link.href}
                 className={pathname === link.href ? mobileDropdownLinkActiveStyle : mobileDropdownLinkBaseStyle}
                 aria-current={pathname === link.href ? 'page' : undefined}
-                onClick={() => setIsMobileMenuOpen(false)}
+                onClick={() => {
+                  setIsMobileMenuOpen(false);
+                }}
               >
                 {link.name}
               </Link>
