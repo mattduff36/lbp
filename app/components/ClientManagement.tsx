@@ -57,7 +57,7 @@ export default function ClientManagement({ onLogout }: ClientManagementProps) {
     e.preventDefault();
     if (!editingClient) return;
     try {
-      const response = await fetch(`/api/admin/clients/${editingClient.id}`, {
+      const response = await fetch(`/api/admin/clientOps/${editingClient.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(editingClient),
@@ -73,7 +73,7 @@ export default function ClientManagement({ onLogout }: ClientManagementProps) {
   const handleDeleteClient = async (clientId: string) => {
     if (!confirm('Are you sure you want to delete this client?')) return;
     try {
-      const response = await fetch(`/api/admin/clients/${clientId}`, {
+      const response = await fetch(`/api/admin/clientOps/${clientId}`, {
         method: 'DELETE',
       });
       if (!response.ok) throw new Error('Failed to delete client');
