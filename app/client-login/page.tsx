@@ -37,7 +37,7 @@ export default function ClientLoginPage() {
 
       if (response.ok && data.success) {
         // Credentials are valid, proceed to gallery
-        router.push(`/client-login/${trimmedUsername}`);
+        router.push(`/client-login/${trimmedUsername.toLowerCase()}`);
       } else {
         // Invalid credentials or other server-side error reported by the API
         setError(data.message || 'Invalid username or password. Please try again.');

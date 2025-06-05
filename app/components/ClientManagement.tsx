@@ -167,7 +167,7 @@ export default function ClientManagement({ onLogout }: ClientManagementProps) {
                 <tr className="border-b border-gray-700">
                   <th className="py-3 px-4 text-sm font-semibold text-gray-300 uppercase tracking-wider">Username</th>
                   <th className="py-3 px-4 text-sm font-semibold text-gray-300 uppercase tracking-wider">Password</th>
-                  <th className="py-3 px-4 text-sm font-semibold text-gray-300 uppercase tracking-wider text-right">Actions</th>
+                  <th className="py-3 px-4 text-sm font-semibold text-gray-300 uppercase tracking-wider text-right hidden md:table-cell">Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -194,7 +194,7 @@ export default function ClientManagement({ onLogout }: ClientManagementProps) {
                             required
                           />
                         </td>
-                        <td className="py-3 px-4 text-right">
+                        <td className="py-3 px-4 text-right hidden md:table-cell">
                           <form onSubmit={handleUpdateClient} className="inline-flex gap-2">
                             <button
                               type="submit"
@@ -217,7 +217,7 @@ export default function ClientManagement({ onLogout }: ClientManagementProps) {
                         {/* Display State */}
                         <td className="py-3 px-4 text-gray-300">{client.username}</td>
                         <td className="py-3 px-4 text-gray-400">{client.password}</td>
-                        <td className="py-3 px-4 text-right">
+                        <td className="py-3 px-4 text-right hidden md:table-cell">
                           <div className="inline-flex gap-2">
                             <button
                               onClick={() => setEditingClient(client)}
