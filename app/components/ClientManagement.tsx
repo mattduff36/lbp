@@ -130,7 +130,7 @@ export default function ClientManagement({ onLogout }: ClientManagementProps) {
                   type="text"
                   id="username"
                   value={newClient.username}
-                  onChange={(e) => setNewClient({ ...newClient, username: e.target.value })}
+                  onChange={(e) => setNewClient({ ...newClient, username: e.target.value.toLowerCase() })}
                   className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-LBPBlue"
                   required
                 />
@@ -180,7 +180,7 @@ export default function ClientManagement({ onLogout }: ClientManagementProps) {
                           <input
                             type="text"
                             value={editingClient.username}
-                            onChange={(e) => setEditingClient({ ...editingClient, username: e.target.value })}
+                            onChange={(e) => setEditingClient({ ...editingClient, username: e.target.value.toLowerCase() })}
                             className="w-full px-2 py-1 bg-gray-600 border border-gray-500 rounded-md text-white focus:outline-none focus:ring-1 focus:ring-LBPBlue"
                             required
                           />
