@@ -1,13 +1,13 @@
 import { useEffect } from 'react';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
+import { PortfolioImage } from './types';
+import { FaDownload } from 'react-icons/fa';
 
 interface ImageModalProps {
-  image: {
-    src: string;
-    name: string;
-  };
+  image: PortfolioImage;
   onClose: () => void;
+  onDownload: (image: PortfolioImage) => void;
   onNext?: () => void;
   onPrevious?: () => void;
   hasNext?: boolean;
@@ -20,7 +20,7 @@ const modalVariants = {
   exit: { opacity: 0, scale: 0.9, transition: { duration: 0.2, ease: "easeInOut" } },
 };
 
-const ImageModal = ({ image, onClose, onNext, onPrevious, hasNext, hasPrevious }: ImageModalProps) => {
+const ImageModal = ({ image, onClose, onDownload, onNext, onPrevious, hasNext, hasPrevious }: ImageModalProps) => {
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
@@ -60,6 +60,11 @@ const ImageModal = ({ image, onClose, onNext, onPrevious, hasNext, hasPrevious }
       exit="exit"
       variants={modalVariants}
     >
+      {/* Image Name Header */}
+      <div className="absolute top-4 left-1/2 -translate-x-1/2 z-50 px-4 py-2 bg-black bg-opacity-50 rounded-lg text-white text-sm">
+        {image.name}
+      </div>
+
       {/* Previous Button */}
       {hasPrevious && onPrevious && (
         <button
@@ -105,15 +110,27 @@ const ImageModal = ({ image, onClose, onNext, onPrevious, hasNext, hasPrevious }
       )}
 
       {/* Close Button (Top Right) */}
-      <button
-        onClick={(e) => { e.stopPropagation(); onClose(); }}
-        className="absolute top-4 right-4 z-50 p-2 bg-black bg-opacity-30 rounded-full text-white hover:bg-opacity-50 transition-all focus:outline-none focus:ring-2 focus:ring-white"
-        aria-label="Close image preview"
-      >
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
-          <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-        </svg>
-      </button>
+      <div className="absolute top-4 right-4 z-50 flex items-center gap-4">
+        {/* Download Button */}
+        <button
+          onClick={(e) => { e.stopPropagation(); onDownload(image); }}
+          className="p-3 bg-LBPBlue/80 text-white rounded-full hover:bg-LBPBlue transition-all focus:outline-none focus:ring-2 focus:ring-white"
+          aria-label="Download image"
+        >
+          <FaDownload />
+        </button>
+
+        {/* Close Button (Top Right) */}
+        <button
+          onClick={(e) => { e.stopPropagation(); onClose(); }}
+          className="p-3 bg-black/30 text-white rounded-full hover:bg-black/50 transition-all focus:outline-none focus:ring-2 focus:ring-white"
+          aria-label="Close image preview"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
 
     </motion.div>
   );

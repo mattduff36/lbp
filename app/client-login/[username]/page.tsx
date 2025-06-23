@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import ImageModal from '@/app/components/ImageModal';
 import { PortfolioImage } from '@/app/components/types';
 import { useParams } from 'next/navigation';
+import { FaDownload } from 'react-icons/fa';
 
 // Animation variants
 const titleVariants = {
@@ -53,14 +54,16 @@ export default function ClientGalleryPage() {
         }
         const data = await response.json();
         // Ensure the fetched data conforms to PortfolioImage, especially `src`
-        const fetchedImages: PortfolioImage[] = data.images.map((img: any) => ({
-          id: img.id || String(Math.random()), // Ensure ID exists
-          src: img.src, // This should be the webContentLink from your API
-          name: img.name || 'Untitled Image',
-          thumbnail: img.thumbnail,
-          width: img.width || 400, // Default or fetched width
-          height: img.height || 300, // Default or fetched height
-        }));
+        const fetchedImages: PortfolioImage[] = data.images
+          .filter((img: any) => img.src)
+          .map((img: any) => ({
+            id: img.id || String(Math.random()), // Ensure ID exists
+            src: img.src, // This should be the webContentLink from your API
+            name: img.name || 'Untitled Image',
+            thumbnail: img.thumbnail,
+            width: img.width || 400, // Default or fetched width
+            height: img.height || 300, // Default or fetched height
+          }));
         setImages(fetchedImages);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to load images');
@@ -96,6 +99,17 @@ export default function ClientGalleryPage() {
       setSelectedImage(images[prevIndex]);
       setSelectedImageIndex(prevIndex);
     }
+  };
+
+  const handleDownloadSingle = (e: React.MouseEvent, image: PortfolioImage) => {
+    e.stopPropagation(); // Prevent modal from opening
+    const downloadUrl = `/api/client-gallery/download-single?fileId=${image.id}`;
+    window.open(downloadUrl, '_blank');
+  };
+
+  const handleModalDownload = (image: PortfolioImage) => {
+    const downloadUrl = `/api/client-gallery/download-single?fileId=${image.id}`;
+    window.open(downloadUrl, '_blank');
   };
 
   const handleDownloadAll = async () => {
@@ -205,6 +219,13 @@ export default function ClientGalleryPage() {
                   priority={index < 8}
                 />
                 <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                <button
+                  onClick={(e) => handleDownloadSingle(e, image)}
+                  className="absolute bottom-2 right-2 p-3 bg-black/50 rounded-full text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300 hover:bg-black/75 focus:outline-none focus:ring-2 focus:ring-white"
+                  aria-label="Download image"
+                >
+                  <FaDownload />
+                </button>
               </motion.div>
             ))}
           </motion.div>
@@ -220,6 +241,7 @@ export default function ClientGalleryPage() {
           <ImageModal
             image={selectedImage}
             onClose={handleCloseModal}
+            onDownload={handleModalDownload}
             onNext={handleNextImage}
             onPrevious={handlePreviousImage}
             hasNext={selectedImageIndex < images.length - 1}
