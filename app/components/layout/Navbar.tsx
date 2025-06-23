@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { useState, useEffect, useRef } from 'react';
 import { GALLERIES } from '@/app/config/galleries';
 
@@ -20,11 +20,30 @@ const navLinks: NavLinkItem[] = [
 
 const Navbar = () => {
   const pathname = usePathname();
+  const router = useRouter();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isPortfolioDropdownOpen, setIsPortfolioDropdownOpen] = useState(false);
   const [isMobilePortfolioDropdownOpen, setIsMobilePortfolioDropdownOpen] = useState(false);
   const portfolioDropdownRef = useRef<HTMLDivElement>(null);
   const portfolioDropdownTimeoutRef = useRef<NodeJS.Timeout>();
+
+  const isClientGalleryPage = pathname.startsWith('/client-login/') && pathname.length > '/client-login/'.length;
+
+  const handleLogout = async () => {
+    try {
+      const response = await fetch('/api/clients/logout', {
+        method: 'POST',
+      });
+
+      if (response.ok) {
+        router.push('/');
+      } else {
+        console.error('Logout failed');
+      }
+    } catch (error) {
+      console.error('Error during logout:', error);
+    }
+  };
 
   const handleToggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
@@ -137,6 +156,19 @@ const Navbar = () => {
                   </div>
                 );
               }
+              if (link.name === 'Client Login') {
+                if (isClientGalleryPage) {
+                  return (
+                    <button
+                      key="logout"
+                      onClick={handleLogout}
+                      className={`${baseLinkStyle} text-red-500 hover:text-red-400 flex items-center`}
+                    >
+                      Log Out
+                    </button>
+                  );
+                }
+              }
               return (
                 <Link
                   key={link.name}
@@ -191,6 +223,19 @@ const Navbar = () => {
                   </div>
                 );
               }
+              if (link.name === 'Client Login') {
+                if (isClientGalleryPage) {
+                  return (
+                    <button
+                      key="logout-mobile"
+                      onClick={handleLogout}
+                      className={`${baseLinkStyle} text-red-500 hover:text-red-400 mr-3 sm:mr-4`}
+                    >
+                      Log Out
+                    </button>
+                  );
+                }
+              }
               return (
                 <Link
                   key={link.name}
@@ -233,19 +278,26 @@ const Navbar = () => {
       {isMobileMenuOpen && !isMobilePortfolioDropdownOpen && (
         <div className="md:hidden absolute top-16 inset-x-0 z-40 transform transition-transform duration-300 ease-in-out" id="mobile-menu">
           <div className="pt-2 pb-3 space-y-1 sm:px-3 px-2 bg-black border-t border-gray-800 shadow-lg rounded-b-md">
-            {moreDropdownLinks.map((link) => (
-              <Link
-                key={link.name}
-                href={link.href}
-                className={pathname === link.href ? mobileDropdownLinkActiveStyle : mobileDropdownLinkBaseStyle}
-                aria-current={pathname === link.href ? 'page' : undefined}
-                onClick={() => {
-                  setIsMobileMenuOpen(false);
-                }}
-              >
-                {link.name}
-              </Link>
-            ))}
+            {moreDropdownLinks.map((link) => {
+              if (link.name === 'Client Login') {
+                if (isClientGalleryPage) {
+                  return null;
+                }
+              }
+              return (
+                <Link
+                  key={link.name}
+                  href={link.href}
+                  className={pathname === link.href ? mobileDropdownLinkActiveStyle : mobileDropdownLinkBaseStyle}
+                  aria-current={pathname === link.href ? 'page' : undefined}
+                  onClick={() => {
+                    setIsMobileMenuOpen(false);
+                  }}
+                >
+                  {link.name}
+                </Link>
+              );
+            })}
           </div>
         </div>
       )}

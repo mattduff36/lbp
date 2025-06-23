@@ -25,8 +25,8 @@ export default function ClientLayout({ children }: ClientLayoutProps) {
 
   return (
     <>
-      <div className="min-h-screen flex flex-col bg-black text-white">
-        <main className="flex-grow">
+      <div className="flex-grow flex flex-col bg-black text-white">
+        <main className="flex-grow flex flex-col">
           {children}
         </main>
 

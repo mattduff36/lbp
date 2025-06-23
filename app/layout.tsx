@@ -76,7 +76,7 @@ export default function RootLayout({
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" type="image/png" href="/favicon.png" />
       </head>
-      <body className="bg-off-white min-h-screen">
+      <body className="bg-off-white min-h-screen flex flex-col">
         <Providers>
           <Navbar key="navbar" />
           <ClientLayout key="client-layout">{children}</ClientLayout>

@@ -58,13 +58,15 @@ const ClientLoginForm = ({ onLogin, error }: ClientLoginFormProps) => {
         <div className="text-red-500 text-sm">{error}</div>
       )}
 
-      <button
-        type="submit"
-        disabled={isLoading}
-        className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-LBPBlue hover:bg-LBPBlue/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-LBPBlue disabled:opacity-50 disabled:cursor-not-allowed"
-      >
-        {isLoading ? 'Logging in...' : 'Login'}
-      </button>
+      <div className="flex justify-center">
+        <button
+          type="submit"
+          disabled={isLoading}
+          className="flex justify-center py-2 px-8 border border-LBPBlue text-LBPBlue rounded-md shadow-sm text-sm font-medium hover:bg-LBPBlue hover:text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-black focus:ring-LBPBlue disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
+        >
+          {isLoading ? 'Logging in...' : 'Login'}
+        </button>
+      </div>
     </form>
   );
 };

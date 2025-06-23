@@ -4,9 +4,10 @@ import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
 import ImageModal from '@/app/components/ImageModal';
+import SlideshowModal from '@/app/components/SlideshowModal';
 import { PortfolioImage } from '@/app/components/types';
 import { useParams } from 'next/navigation';
-import { FaDownload } from 'react-icons/fa';
+import { FaDownload, FaPlay } from 'react-icons/fa';
 
 // Animation variants
 const titleVariants = {
@@ -39,6 +40,7 @@ export default function ClientGalleryPage() {
   const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [showSlideshow, setShowSlideshow] = useState(false);
 
   useEffect(() => {
     if (!username) return;
@@ -182,13 +184,43 @@ export default function ClientGalleryPage() {
             Your Gallery
           </motion.h1>
           
-          <button
-            onClick={handleDownloadAll}
-            className="bg-LBPBlue text-white px-8 py-3 rounded-md border-2 border-LBPBlue/70 shadow-lg hover:bg-LBPBlue/80 hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-LBPBlue focus:ring-opacity-75 transition-all duration-200 disabled:opacity-50"
-            disabled={!username || images.length === 0}
-          >
-            Download All
-          </button>
+          <div className="flex items-center gap-4">
+            <motion.button
+              onClick={() => setShowSlideshow(true)}
+              disabled={images.length === 0}
+              className="flex items-center justify-center overflow-hidden rounded-full p-3 md:w-12 md:h-12 md:hover:w-auto border-2 border-white/50 text-white shadow-lg transition-all duration-300 ease-in-out focus:outline-none focus:ring-2 focus:ring-white/80 disabled:opacity-50"
+              whileHover="hover"
+              initial="rest"
+              animate="rest"
+            >
+              <FaPlay />
+              <motion.div
+                className="overflow-hidden hidden md:block"
+                variants={{ rest: { width: 0, opacity: 0, marginLeft: 0 }, hover: { width: 'auto', opacity: 1, marginLeft: '8px' } }}
+                transition={{ duration: 0.3, ease: 'easeOut' }}
+              >
+                <span className="whitespace-nowrap">Slideshow</span>
+              </motion.div>
+            </motion.button>
+
+            <motion.button
+              onClick={handleDownloadAll}
+              disabled={!username || images.length === 0}
+              className="flex items-center justify-center overflow-hidden rounded-full p-3 md:w-12 md:h-12 md:hover:w-auto border-2 border-LBPBlue/70 bg-LBPBlue text-white shadow-lg transition-all duration-300 ease-in-out focus:outline-none focus:ring-2 focus:ring-LBPBlue disabled:opacity-50"
+              whileHover="hover"
+              initial="rest"
+              animate="rest"
+            >
+              <FaDownload />
+              <motion.div
+                className="overflow-hidden hidden md:block"
+                variants={{ rest: { width: 0, opacity: 0, marginLeft: 0 }, hover: { width: 'auto', opacity: 1, marginLeft: '8px' } }}
+                transition={{ duration: 0.3, ease: 'easeOut' }}
+              >
+                <span className="whitespace-nowrap">Download All</span>
+              </motion.div>
+            </motion.button>
+          </div>
         </div>
         
         {images.length > 0 ? (
@@ -247,6 +279,12 @@ export default function ClientGalleryPage() {
             hasNext={selectedImageIndex < images.length - 1}
             hasPrevious={selectedImageIndex > 0}
           />
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {showSlideshow && (
+          <SlideshowModal images={images} onClose={() => setShowSlideshow(false)} />
         )}
       </AnimatePresence>
     </motion.div>
