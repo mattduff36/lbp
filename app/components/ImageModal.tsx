@@ -7,7 +7,7 @@ import { FaDownload } from 'react-icons/fa';
 interface ImageModalProps {
   image: PortfolioImage;
   onClose: () => void;
-  onDownload: (image: PortfolioImage) => void;
+  onDownload?: (image: PortfolioImage) => void;
   onNext?: () => void;
   onPrevious?: () => void;
   hasNext?: boolean;
@@ -111,14 +111,16 @@ const ImageModal = ({ image, onClose, onDownload, onNext, onPrevious, hasNext, h
 
       {/* Close Button (Top Right) */}
       <div className="absolute top-4 right-4 z-50 flex items-center gap-4">
-        {/* Download Button */}
-        <button
-          onClick={(e) => { e.stopPropagation(); onDownload(image); }}
-          className="p-3 bg-LBPBlue/80 text-white rounded-full hover:bg-LBPBlue transition-all focus:outline-none focus:ring-2 focus:ring-white"
-          aria-label="Download image"
-        >
-          <FaDownload />
-        </button>
+        {/* Download Button (Conditionally Rendered) */}
+        {onDownload && (
+          <button
+            onClick={(e) => { e.stopPropagation(); onDownload(image); }}
+            className="p-3 bg-LBPBlue/80 text-white rounded-full hover:bg-LBPBlue transition-all focus:outline-none focus:ring-2 focus:ring-white"
+            aria-label="Download image"
+          >
+            <FaDownload />
+          </button>
+        )}
 
         {/* Close Button (Top Right) */}
         <button
