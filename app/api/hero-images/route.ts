@@ -1,45 +1,40 @@
 import { NextResponse } from 'next/server';
-import { syncHeroImages } from '@/app/services/syncHeroImages';
-import { listBlobFiles } from '@/app/services/blobStorage'; // Import for Vercel Blob
-import type { HeroImage } from '@/app/components/types'; // Assuming HeroImage type is defined here
+import { google } from 'googleapis';
 
-const HERO_BLOB_PREFIX = 'hero_images/';
+const auth = new google.auth.GoogleAuth({
+  credentials: {
+    client_email: process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL,
+    private_key: process.env.GOOGLE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
+  },
+  scopes: ['https://www.googleapis.com/auth/drive.readonly'],
+});
+
+const drive = google.drive({ version: 'v3', auth });
+const HERO_FOLDER_ID = process.env.GOOGLE_DRIVE_HERO_FOLDER_ID;
 
 export async function GET() {
-  // Trigger sync in the background - fire and forget.
-  // This allows the API to respond quickly with what's currently in the blob,
-  // while the sync happens separately if needed.
-  syncHeroImages().catch(error => {
-    console.error('Background hero image sync with Vercel Blob failed:', error);
-  });
+  if (!HERO_FOLDER_ID) {
+    console.error('GOOGLE_DRIVE_HERO_FOLDER_ID is not set.');
+    return NextResponse.json({ images: [], error: 'Server configuration error for hero images.' }, { status: 500 });
+  }
 
   try {
-    // console.log(`[API Route] Attempting to list blobs with prefix: ${HERO_BLOB_PREFIX}`);
-    const listResult = await listBlobFiles(HERO_BLOB_PREFIX);
-    // console.log('[API Route] Raw listResult from listBlobFiles:', JSON.stringify(listResult, null, 2));
+    const imagesResponse = await drive.files.list({
+      q: `'${HERO_FOLDER_ID}' in parents and mimeType contains 'image/'`,
+      fields: 'files(id, name, webContentLink)',
+      orderBy: 'createdTime desc',
+    });
 
-    // listResult is directly the array of blob objects.
-    const blobs = listResult; // Changed from listResult?.blobs
+    const images = imagesResponse.data.files?.map((file, index) => ({
+      id: file.id || index,
+      src: file.webContentLink,
+      alt: file.name || `Hero Image ${index + 1}`,
+    })) || [];
 
-    if (!blobs || blobs.length === 0) {
-      console.log('[API Route] No blobs found or blobs array is empty. API will return empty images array.');
-      return NextResponse.json({ images: [] });
-    }
-    // console.log(`[API Route] Found ${blobs.length} blobs after filtering.`);
-
-    const images: HeroImage[] = blobs
-      .filter(blob => blob.pathname && /\.(jpg|jpeg|png|gif|webp)$/i.test(blob.pathname))
-      .map((blob, index) => ({
-        id: index, 
-        src: blob.url, 
-        alt: blob.pathname.substring(HERO_BLOB_PREFIX.length) || `Hero Image ${index + 1}`,
-      }));
-    
-    // console.log(`[API Route] Mapped to ${images.length} hero images.`);
     return NextResponse.json({ images });
 
   } catch (error) {
-    console.error('[API Route] Error in hero-images GET route while listing blobs:', error);
-    return NextResponse.json({ images: [], error: 'Failed to retrieve hero images' }, { status: 500 });
+    console.error('[API Route] Error in hero-images GET route while fetching from Google Drive:', error);
+    return NextResponse.json({ images: [], error: 'Failed to retrieve hero images from Google Drive' }, { status: 500 });
   }
 } 

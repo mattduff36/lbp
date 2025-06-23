@@ -53,75 +53,35 @@ const PortfolioGallery = ({ category, title }: PortfolioGalleryProps) => {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    let isMounted = true;
+    const fetchImages = async () => {
+      if (!category) return;
 
-    const fetchImageDimensions = (imageSrc: string): Promise<{ width: number; height: number }> => {
-      return new Promise((resolve, reject) => {
-        const img = document.createElement('img');
-        img.onload = () => resolve({ width: img.naturalWidth, height: img.naturalHeight });
-        img.onerror = (err) => reject(err);
-        img.src = imageSrc;
-      });
-    };
-
-    const fetchImagesAndUpdateState = async () => {
       setIsLoading(true);
       setError(null);
-      setImages([]);
-
       try {
-        const apiUrl = `/api/portfolio-images?category=${category.toLowerCase()}`;
-        const response = await fetch(apiUrl);
-
-        if (!isMounted) return;
-
+        const response = await fetch(`/api/portfolio-images?category=${category.toLowerCase()}`);
         if (!response.ok) {
-          const errorData = await response.json().catch(() => ({ message: 'Failed to fetch images' }));
-          throw new Error(errorData.error || `Failed to fetch images: ${response.statusText}`);
+          const errorData = await response.json().catch(() => ({}));
+          throw new Error(errorData.error || `Failed to fetch images. Status: ${response.status}`);
         }
-        let fetchedImages: PortfolioImage[] = await response.json();
-
-        if (!isMounted) return;
-
-        if (fetchedImages.length > 0) {
-          setImages(fetchedImages.map(img => ({...img, width: img.width || 400, height: img.height || 300 })));
-          setIsLoading(false);
-
-          const imagesWithDimensions = await Promise.all(
-            fetchedImages.map(async (img) => {
-              try {
-                const dimensions = await fetchImageDimensions(img.src);
-                return { ...img, ...dimensions };
-              } catch (dimError) {
-                console.error(`Error fetching dimensions for ${img.name} (src: ${img.src}):`, dimError);
-                return { ...img, width: img.width || 4, height: img.height || 3 };
-              }
-            })
-          );
-          if (isMounted) {
-            setImages(imagesWithDimensions);
-          }
-        } else {
-          setImages([]);
-          setIsLoading(false);
-        }
-
+        const data = await response.json();
+        const fetchedImages: PortfolioImage[] = data.map((img: any) => ({
+          id: img.id || String(Math.random()),
+          src: img.src,
+          name: img.name || 'Untitled Image',
+          thumbnail: img.thumbnail,
+          width: img.width || 400,
+          height: img.height || 300,
+        }));
+        setImages(fetchedImages);
       } catch (err) {
-        if (isMounted) {
-          console.error(`Error fetching images for ${category} gallery:`, err);
-          setError(err instanceof Error ? err.message : 'Failed to load images');
-          setIsLoading(false);
-        }
+        setError(err instanceof Error ? err.message : 'Failed to load images');
+      } finally {
+        setIsLoading(false);
       }
     };
 
-    if (category) {
-      fetchImagesAndUpdateState();
-    }
-
-    return () => {
-      isMounted = false;
-    };
+    fetchImages();
   }, [category]);
 
   const handleOpenModal = (image: PortfolioImage, index: number) => {

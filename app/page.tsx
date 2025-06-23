@@ -1,70 +1,65 @@
 import ClientHero from './components/ClientHero';
 import AnimatedPortfolio from './components/AnimatedPortfolio';
-// import fs from 'fs'; // No longer needed for getPreviewImageSrc
-import path from 'path'; // Still potentially needed if other parts use it, but not for getPreviewImageSrc
-import { list } from '@vercel/blob'; // Added for Vercel Blob Storage
-import { GALLERIES } from '@/app/config/galleries'; // Import shared config
-import { triggerAllPortfolioGalleriesSync, triggerAllHeroImagesSync } from '@/app/actions/siteSyncActions'; // Added import
+import path from 'path';
+import { GALLERIES } from '@/app/config/galleries';
+import { google } from 'googleapis';
 
-// const galleries = [...] // This is now imported
+const auth = new google.auth.GoogleAuth({
+  credentials: {
+    client_email: process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL,
+    private_key: process.env.GOOGLE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
+  },
+  scopes: ['https://www.googleapis.com/auth/drive.readonly'],
+});
+
+const drive = google.drive({ version: 'v3', auth });
+const PORTFOLIO_ROOT_FOLDER_ID = process.env.GOOGLE_DRIVE_FOLDER_ID;
 
 const getPreviewImageSrc = async (categoryDir: string): Promise<string | null> => {
-  const pathnamePrefix = `portfolio_images/${categoryDir.toLowerCase()}/`;
-  try {
-    console.log(`Fetching from Blob Storage with prefix: ${pathnamePrefix}`);
-    console.log(`Using BLOB_READ_WRITE_TOKEN: ${process.env.BLOB_READ_WRITE_TOKEN ? 'Token Loaded' : 'Token NOT Loaded or Empty'}`);
-    const { blobs } = await list({
-      prefix: pathnamePrefix,
-      token: process.env.BLOB_READ_WRITE_TOKEN, // Ensure this token is available server-side
-    });
-    console.log(`Blobs received for ${pathnamePrefix}:`, blobs);
+  if (!PORTFOLIO_ROOT_FOLDER_ID) {
+    console.error('getPreviewImageSrc: GOOGLE_DRIVE_FOLDER_ID is not set.');
+    return null;
+  }
 
-    if (!blobs || blobs.length === 0) {
-      console.warn(`No blobs found in Vercel Blob Storage for prefix: ${pathnamePrefix}`);
+  try {
+    const categoryLower = categoryDir.toLowerCase();
+    
+    const folderResponse = await drive.files.list({
+      q: `mimeType='application/vnd.google-apps.folder' and name='${categoryLower}' and '${PORTFOLIO_ROOT_FOLDER_ID}' in parents`,
+      fields: 'files(id)',
+      pageSize: 1,
+    });
+
+    const categoryFolder = folderResponse.data.files?.[0];
+
+    if (!categoryFolder || !categoryFolder.id) {
+      console.warn(`getPreviewImageSrc: Category folder '${categoryDir}' not found.`);
       return null;
     }
 
-    const imageFiles = blobs.filter(blob =>
-      /\.(jpe?g|png|gif|webp)$/i.test(blob.pathname)
-    );
+    const imagesResponse = await drive.files.list({
+      q: `'${categoryFolder.id}' in parents and mimeType contains 'image/'`,
+      fields: 'files(webContentLink)',
+      pageSize: 1,
+      orderBy: 'createdTime desc', 
+    });
 
-    console.log(`Image files filtered for ${pathnamePrefix}:`, imageFiles);
-
-    if (imageFiles.length > 0) {
-      const randomIndex = Math.floor(Math.random() * imageFiles.length);
-      const randomImage = imageFiles[randomIndex];
-      console.log(`Selected random image for ${pathnamePrefix}: ${randomImage.url}`);
-      return randomImage.url;
+    const firstImage = imagesResponse.data.files?.[0];
+    
+    if (!firstImage || !firstImage.webContentLink) {
+      console.warn(`getPreviewImageSrc: No images found in category folder '${categoryDir}'.`);
+      return null;
     }
-    console.warn(`No image files found in Vercel Blob Storage for prefix: ${pathnamePrefix} after filtering`);
-    return null;
+
+    return firstImage.webContentLink;
+
   } catch (error) {
-    console.error(`Error fetching preview image from Vercel Blob Storage for category ${categoryDir}:`, error);
+    console.error(`getPreviewImageSrc: Error fetching preview for ${categoryDir}:`, error);
     return null;
   }
 };
 
 export default async function Home() {
-  // --- Temporary Sync Trigger --- 
-  /*
-  console.log('[TEMP SYNC] Attempting to trigger all portfolio galleries sync...');
-  try {
-    const portfolioSyncResult = await triggerAllPortfolioGalleriesSync();
-    console.log('[TEMP SYNC] Portfolio galleries sync result:', portfolioSyncResult);
-  } catch (error) {
-    console.error('[TEMP SYNC] Error triggering portfolio galleries sync:', error);
-  }
-
-  console.log('[TEMP SYNC] Attempting to trigger all hero images sync...');
-  try {
-    const heroSyncResult = await triggerAllHeroImagesSync();
-    console.log('[TEMP SYNC] Hero images sync result:', heroSyncResult);
-  } catch (error) {
-    console.error('[TEMP SYNC] Error triggering hero images sync:', error);
-  }
-  */
-  // --- End of Temporary Sync Trigger ---
-
   const galleriesWithPreviewsPromises = GALLERIES.map(async (gallery) => ({
     ...gallery,
     previewImageSrc: await getPreviewImageSrc(gallery.localDir),
