@@ -145,7 +145,7 @@ export default function AdminPage() {
     <div className="min-h-screen bg-gradient-to-br from-red-950 via-black to-red-950 text-white">
       <div className="max-w-4xl mx-auto px-8">
         {/* Tabs Navigation - Centered with Logout Button */}
-        <div className="relative flex justify-center items-center">
+        <div className="relative flex justify-start sm:justify-center items-center">
           <nav className="-mb-px flex space-x-8" aria-label="Tabs">
             <button
               onClick={() => setActiveTab('clientManagement')}
