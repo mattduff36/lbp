@@ -104,39 +104,37 @@ export default function AdminPage() {
 
   if (!isAuthenticated) {
     return (
-      <div className="flex flex-col min-h-screen bg-gradient-to-br from-red-950 via-black to-red-950 text-white">
-        <div className="flex-grow flex items-center justify-center p-4">
-          <div className="w-full max-w-md">
-            <div className="text-center mb-8">
-              <h1 className="text-3xl font-medium text-gray-300 tracking-wider uppercase font-montserrat">
-                Admin Access
-              </h1>
-              <p className="text-gray-400 mt-2">Enter your credentials to manage the site</p>
-            </div>
-            <div className="bg-gray-800 p-8 rounded-lg shadow-xl">
-              <form onSubmit={handlePasswordSubmit}>
-                <div className="mb-4">
-                  <label htmlFor="password" className="block text-sm font-medium text-gray-300 mb-1">Password</label>
-                  <input
-                    type="password"
-                    id="password"
-                    value={passwordInput}
-                    onChange={(e) => setPasswordInput(e.target.value)}
-                    className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white focus:ring-LBPBlue focus:border-LBPBlue"
-                    required
-                    disabled={isLoading}
-                  />
-                </div>
-                {error && <p className="text-red-500 text-sm mb-4 text-center">{error}</p>}
-                <button
-                  type="submit"
-                  className="w-full px-6 py-2.5 bg-LBPBlue text-white font-medium rounded-md shadow-lg border-2 border-LBPBlue/70 hover:bg-LBPBlue/80 hover:border-LBPBlue hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-LBPBlue focus:ring-offset-2 focus:ring-offset-gray-800 transition-all duration-150 ease-in-out disabled:opacity-50"
+      <div className="flex-grow bg-gradient-to-br from-red-950 via-black to-red-950 text-white flex items-center justify-center p-4">
+        <div className="w-full max-w-md">
+          <div className="text-center mb-8">
+            <h1 className="text-3xl font-medium text-gray-300 tracking-wider uppercase font-montserrat">
+              Admin Access
+            </h1>
+            <p className="text-gray-400 mt-2">Enter your credentials to manage the site</p>
+          </div>
+          <div className="bg-gray-800 p-8 rounded-lg shadow-xl">
+            <form onSubmit={handlePasswordSubmit}>
+              <div className="mb-4">
+                <label htmlFor="password" className="block text-sm font-medium text-gray-300 mb-1">Password</label>
+                <input
+                  type="password"
+                  id="password"
+                  value={passwordInput}
+                  onChange={(e) => setPasswordInput(e.target.value)}
+                  className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white focus:ring-LBPBlue focus:border-LBPBlue"
+                  required
                   disabled={isLoading}
-                >
-                  {isLoading ? 'Logging in...' : 'Login'}
-                </button>
-              </form>
-            </div>
+                />
+              </div>
+              {error && <p className="text-red-500 text-sm mb-4 text-center">{error}</p>}
+              <button
+                type="submit"
+                className="w-full px-6 py-2.5 bg-LBPBlue text-white font-medium rounded-md shadow-lg border-2 border-LBPBlue/70 hover:bg-LBPBlue/80 hover:border-LBPBlue hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-LBPBlue focus:ring-offset-2 focus:ring-offset-gray-800 transition-all duration-150 ease-in-out disabled:opacity-50"
+                disabled={isLoading}
+              >
+                {isLoading ? 'Logging in...' : 'Login'}
+              </button>
+            </form>
           </div>
         </div>
       </div>
