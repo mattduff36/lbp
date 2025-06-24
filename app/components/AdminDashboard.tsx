@@ -6,22 +6,14 @@ interface AdminDashboardProps {
 
 export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
   return (
-    <div className="p-8">
-      <div className="max-w-4xl mx-auto">
-        <div className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-medium text-gray-300 tracking-wider uppercase font-montserrat">
-            Admin Dashboard
-          </h1>
-          <button
-            onClick={onLogout}
-            className="px-4 py-1.5 bg-red-600 text-white font-medium rounded-md shadow-lg border-2 border-red-600/70 hover:bg-red-700 hover:border-red-700 hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:ring-offset-gray-800 transition-all duration-150 ease-in-out disabled:opacity-50"
-          >
-            Logout
-          </button>
-        </div>
-        <div className="bg-gray-800 p-6 rounded-lg shadow-xl">
-          <p className="text-gray-300">All portfolio and hero images are now synced directly from Google Drive. Manual syncing is no longer required.</p>
-        </div>
+    <div>
+      <div className="flex justify-between items-center mb-8">
+        <h1 className="text-3xl font-medium text-gray-300 tracking-wider uppercase font-montserrat">
+          Admin Dashboard
+        </h1>
+      </div>
+      <div className="bg-gray-800 p-6 rounded-lg shadow-xl">
+        <p className="text-gray-300">All portfolio and hero images are now synced directly from Google Drive. Manual syncing is no longer required.</p>
       </div>
     </div>
   );

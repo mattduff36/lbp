@@ -76,9 +76,7 @@ export default function AdminPage() {
         method: 'POST',
       });
       if (response.ok) {
-        setIsAuthenticated(false);
-        // Reset active tab to default or last known, though it will go to login form anyway
-        setActiveTab('clientManagement'); 
+        router.push('/');
       } else {
         console.error('Logout failed on server, forcing client logout.');
         setIsAuthenticated(false);
@@ -106,72 +104,92 @@ export default function AdminPage() {
 
   if (!isAuthenticated) {
     return (
-      <div className="min-h-screen bg-black text-white flex flex-col items-center justify-center p-4">
-        <div className="bg-gray-800 p-8 rounded-lg shadow-xl w-full max-w-md">
-          <h1 className="text-3xl font-medium text-gray-300 tracking-wider uppercase font-montserrat mb-8 text-center">
-            Admin Access
-          </h1>
-          <form onSubmit={handlePasswordSubmit}>
-            <div className="mb-4">
-              <label htmlFor="password" className="block text-sm font-medium text-gray-300 mb-1">Password</label>
-              <input
-                type="password"
-                id="password"
-                value={passwordInput}
-                onChange={(e) => setPasswordInput(e.target.value)}
-                className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white focus:ring-LBPBlue focus:border-LBPBlue"
-                required
-                disabled={isLoading}
-              />
+      <div className="flex flex-col min-h-screen bg-gradient-to-br from-red-950 via-black to-red-950 text-white">
+        <div className="flex-grow flex items-center justify-center p-4">
+          <div className="w-full max-w-md">
+            <div className="text-center mb-8">
+              <h1 className="text-3xl font-medium text-gray-300 tracking-wider uppercase font-montserrat">
+                Admin Access
+              </h1>
+              <p className="text-gray-400 mt-2">Enter your credentials to manage the site</p>
             </div>
-            {error && <p className="text-red-500 text-sm mb-4 text-center">{error}</p>}
-            <button
-              type="submit"
-              className="w-full px-6 py-2.5 bg-LBPBlue text-white font-medium rounded-md shadow-lg border-2 border-LBPBlue/70 hover:bg-LBPBlue/80 hover:border-LBPBlue hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-LBPBlue focus:ring-offset-2 focus:ring-offset-gray-800 transition-all duration-150 ease-in-out disabled:opacity-50"
-              disabled={isLoading}
-            >
-              {isLoading ? 'Logging in...' : 'Login'}
-            </button>
-          </form>
+            <div className="bg-gray-800 p-8 rounded-lg shadow-xl">
+              <form onSubmit={handlePasswordSubmit}>
+                <div className="mb-4">
+                  <label htmlFor="password" className="block text-sm font-medium text-gray-300 mb-1">Password</label>
+                  <input
+                    type="password"
+                    id="password"
+                    value={passwordInput}
+                    onChange={(e) => setPasswordInput(e.target.value)}
+                    className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white focus:ring-LBPBlue focus:border-LBPBlue"
+                    required
+                    disabled={isLoading}
+                  />
+                </div>
+                {error && <p className="text-red-500 text-sm mb-4 text-center">{error}</p>}
+                <button
+                  type="submit"
+                  className="w-full px-6 py-2.5 bg-LBPBlue text-white font-medium rounded-md shadow-lg border-2 border-LBPBlue/70 hover:bg-LBPBlue/80 hover:border-LBPBlue hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-LBPBlue focus:ring-offset-2 focus:ring-offset-gray-800 transition-all duration-150 ease-in-out disabled:opacity-50"
+                  disabled={isLoading}
+                >
+                  {isLoading ? 'Logging in...' : 'Login'}
+                </button>
+              </form>
+            </div>
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-black text-white px-4">
-      {/* Tabs Navigation - Centered */}
-      <div className="mb-2 border-b border-gray-700 flex justify-center">
-        <nav className="-mb-px flex space-x-8" aria-label="Tabs">
+    <div className="min-h-screen bg-gradient-to-br from-red-950 via-black to-red-950 text-white">
+      <div className="max-w-4xl mx-auto px-8">
+        {/* Tabs Navigation - Centered with Logout Button */}
+        <div className="relative flex justify-center items-center">
+          <nav className="-mb-px flex space-x-8" aria-label="Tabs">
+            <button
+              onClick={() => setActiveTab('clientManagement')}
+              className={`whitespace-nowrap py-4 px-3 border-b-2 font-montserrat tracking-wider uppercase text-sm font-medium 
+                ${activeTab === 'clientManagement' 
+                  ? 'border-LBPBlue text-LBPBlue' 
+                  : 'border-transparent text-gray-400 hover:text-gray-200 hover:border-gray-500'}
+                focus:outline-none transition-colors duration-150 ease-in-out
+              `}
+            >
+              Client Management
+            </button>
+            <button
+              onClick={() => setActiveTab('manualSync')}
+              className={`whitespace-nowrap py-4 px-3 border-b-2 font-montserrat tracking-wider uppercase text-sm font-medium
+                ${activeTab === 'manualSync' 
+                  ? 'border-LBPBlue text-LBPBlue' 
+                  : 'border-transparent text-gray-400 hover:text-gray-200 hover:border-gray-500'}
+                focus:outline-none transition-colors duration-150 ease-in-out
+              `}
+            >
+              Manual Syncing
+            </button>
+          </nav>
           <button
-            onClick={() => setActiveTab('clientManagement')}
-            className={`whitespace-nowrap py-4 px-3 border-b-2 font-medium text-base 
-              ${activeTab === 'clientManagement' 
-                ? 'border-LBPBlue text-LBPBlue' 
-                : 'border-transparent text-gray-400 hover:text-gray-200 hover:border-gray-500'}
-              focus:outline-none transition-colors duration-150 ease-in-out
-            `}
+            onClick={handleLogoutForTabs}
+            className="absolute right-0 px-4 py-1.5 bg-red-600 text-white font-medium rounded-md shadow-lg border-2 border-red-600/70 hover:bg-red-700 hover:border-red-700 hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:ring-offset-gray-800 transition-all duration-150 ease-in-out disabled:opacity-50"
           >
-            Client Management
+            Logout
           </button>
-          <button
-            onClick={() => setActiveTab('manualSync')}
-            className={`whitespace-nowrap py-4 px-3 border-b-2 font-medium text-base 
-              ${activeTab === 'manualSync' 
-                ? 'border-LBPBlue text-LBPBlue' 
-                : 'border-transparent text-gray-400 hover:text-gray-200 hover:border-gray-500'}
-              focus:outline-none transition-colors duration-150 ease-in-out
-            `}
-          >
-            Manual Syncing
-          </button>
-        </nav>
+        </div>
       </div>
+      
+      {/* Fading Line */}
+      <div className="h-px bg-gradient-to-r from-transparent via-gray-700 to-transparent"></div>
 
       {/* Tab Content Area */}
-      <div className="pb-8">
-        {activeTab === 'clientManagement' && <ClientManagement onLogout={handleLogoutForTabs} />}
-        {activeTab === 'manualSync' && <AdminDashboard onLogout={handleLogoutForTabs} />}
+      <div className="max-w-4xl mx-auto px-8">
+        <div className="py-8">
+          {activeTab === 'clientManagement' && <ClientManagement onLogout={handleLogoutForTabs} />}
+          {activeTab === 'manualSync' && <AdminDashboard onLogout={handleLogoutForTabs} />}
+        </div>
       </div>
     </div>
   );
