@@ -156,7 +156,8 @@ export default function AdminPage() {
                 focus:outline-none transition-colors duration-150 ease-in-out
               `}
             >
-              Client Management
+              <span className="md:hidden">Clients</span>
+              <span className="hidden md:inline">Client Management</span>
             </button>
             <button
               onClick={() => setActiveTab('manualSync')}
@@ -167,7 +168,8 @@ export default function AdminPage() {
                 focus:outline-none transition-colors duration-150 ease-in-out
               `}
             >
-              Manual Syncing
+              <span className="md:hidden">Syncing</span>
+              <span className="hidden md:inline">Manual Syncing</span>
             </button>
           </nav>
           <button
