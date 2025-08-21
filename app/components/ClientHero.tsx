@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
+import { ChevronDownIcon } from '@heroicons/react/24/outline';
 
 interface HeroImage {
   id: number;
@@ -48,6 +49,13 @@ export default function ClientHero() {
   const handleImageClick = () => {
     setIsAutoSliding(false);
     setCurrentIndex((prev) => (prev + 1) % images.length);
+  };
+
+  const handleScrollDown = () => {
+    const portfolioSection = document.getElementById('portfolio');
+    if (portfolioSection) {
+      portfolioSection.scrollIntoView({ behavior: 'smooth' });
+    }
   };
 
   if (loading) {
@@ -122,6 +130,36 @@ export default function ClientHero() {
             />
           </div>
       </div>
+      
+      {/* Scroll Down Arrow */}
+      <motion.button
+        onClick={handleScrollDown}
+        className="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-20 text-white hover:text-gray-300 transition-colors duration-300 focus:outline-none rounded-full p-2"
+        initial={{ opacity: 0 }}
+        animate={{ 
+          opacity: 1,
+          transition: { delay: 5, duration: 1.5, ease: "easeOut" }
+        }}
+        aria-label="Scroll down to view portfolio"
+      >
+        <motion.div className="flex flex-col items-center">
+          <span className="text-sm font-montserrat mb-2 opacity-90 tracking-wider uppercase text-center">
+            Scroll for more
+          </span>
+          <motion.div
+            animate={{ 
+              y: [0, 12, 0],
+            }}
+            transition={{
+              duration: 3,
+              repeat: Infinity,
+              ease: "easeInOut"
+            }}
+          >
+            <ChevronDownIcon className="w-6 h-6" />
+          </motion.div>
+        </motion.div>
+      </motion.button>
     </div>
   );
 }
