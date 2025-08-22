@@ -38,13 +38,17 @@ export async function GET() {
       alt: file.name || `Hero Image ${index + 1}`,
     })) || [];
 
-    // If we have fewer than 2 images from Google Drive, use fallback images to ensure slideshow works
-    if (images.length < 2) {
-      console.log(`Only ${images.length} hero images found in Google Drive, using fallback images`);
-      return NextResponse.json({ images: fallbackImages });
+    console.log(`[HERO IMAGES DEBUG] Found ${images.length} images in Google Drive:`, images.map(img => img.alt));
+
+    // Always use Google Drive images if available, regardless of count
+    if (images.length > 0) {
+      console.log(`[HERO IMAGES DEBUG] Using ${images.length} images from Google Drive`);
+      return NextResponse.json({ images, source: 'google-drive' });
     }
 
-    return NextResponse.json({ images });
+    // Only use fallback if no images found in Google Drive
+    console.log(`[HERO IMAGES DEBUG] No images found in Google Drive, using fallback images`);
+    return NextResponse.json({ images: fallbackImages, source: 'fallback' });
 
   } catch (error) {
     console.error('[API Route] Error in hero-images GET route while fetching from Google Drive:', error);

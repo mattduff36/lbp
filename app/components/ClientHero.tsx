@@ -38,17 +38,22 @@ export default function ClientHero() {
 
   useEffect(() => {
     if (images.length > 1 && isAutoSliding) {
+      console.log(`[HERO COMPONENT] Starting slideshow with ${images.length} images`);
       const timer = setInterval(() => {
         setCurrentIndex((prevIndex) => (prevIndex + 1) % images.length);
       }, 5600);
 
       return () => clearInterval(timer);
+    } else if (images.length === 1) {
+      console.log(`[HERO COMPONENT] Single image mode - no slideshow`);
     }
   }, [images.length, isAutoSliding]);
 
   const handleImageClick = () => {
-    setIsAutoSliding(false);
-    setCurrentIndex((prev) => (prev + 1) % images.length);
+    if (images.length > 1) {
+      setIsAutoSliding(false);
+      setCurrentIndex((prev) => (prev + 1) % images.length);
+    }
   };
 
   const handleScrollDown = () => {
