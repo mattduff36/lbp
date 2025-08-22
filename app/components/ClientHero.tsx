@@ -65,7 +65,7 @@ export default function ClientHero() {
 
   if (loading) {
     return (
-      <div className="relative w-full h-[70vh] flex items-center justify-center bg-black">
+      <div className="relative w-full h-[calc(100vh-4rem)] flex items-center justify-center bg-black">
         <motion.div
           initial={{ opacity: 0.6 }}
           animate={{ opacity: [0.6, 1, 0.6] }}
@@ -90,7 +90,7 @@ export default function ClientHero() {
 
   if (images.length === 0) {
     return (
-      <div className="relative w-full h-[70vh] flex items-center justify-center">
+      <div className="relative w-full h-[calc(100vh-4rem)] flex items-center justify-center">
         <div className="relative z-10 text-center text-white px-4">
           <h1 className="hero-text">Lee Barrowcliff</h1>
           <p className="text-2xl md:text-3xl font-marcellus tracking-wider">
@@ -103,7 +103,7 @@ export default function ClientHero() {
 
   return (
     <div 
-      className="relative w-full h-[70svh] overflow-hidden cursor-pointer touch-action-pan-y"
+      className="relative w-full h-[calc(100vh-4rem)] overflow-hidden cursor-pointer touch-action-pan-y"
       onClick={handleImageClick}
     >
       <AnimatePresence initial={false}>
