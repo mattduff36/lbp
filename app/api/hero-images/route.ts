@@ -20,9 +20,13 @@ const fallbackImages = [
 ];
 
 export async function GET() {
+  const headers = {
+    'Cache-Control': 'no-store, max-age=0, must-revalidate',
+  };
+
   if (!HERO_FOLDER_ID) {
     console.error('GOOGLE_DRIVE_HERO_FOLDER_ID is not set.');
-    return NextResponse.json({ images: fallbackImages }, { status: 200 });
+    return NextResponse.json({ images: fallbackImages }, { status: 200, headers });
   }
 
   try {
@@ -43,15 +47,15 @@ export async function GET() {
     // Always use Google Drive images if available, regardless of count
     if (images.length > 0) {
       console.log(`[HERO IMAGES DEBUG] Using ${images.length} images from Google Drive`);
-      return NextResponse.json({ images, source: 'google-drive' });
+      return NextResponse.json({ images, source: 'google-drive' }, { headers });
     }
 
     // Only use fallback if no images found in Google Drive
     console.log(`[HERO IMAGES DEBUG] No images found in Google Drive, using fallback images`);
-    return NextResponse.json({ images: fallbackImages, source: 'fallback' });
+    return NextResponse.json({ images: fallbackImages, source: 'fallback' }, { headers });
 
   } catch (error) {
     console.error('[API Route] Error in hero-images GET route while fetching from Google Drive:', error);
-    return NextResponse.json({ images: fallbackImages }, { status: 200 });
+    return NextResponse.json({ images: fallbackImages }, { status: 200, headers });
   }
 } 

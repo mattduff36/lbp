@@ -15,6 +15,11 @@ const drive = google.drive({ version: 'v3', auth });
 
 export async function GET(request: Request) {
   console.log('[Client Gallery API] Received GET request'); // Log request received
+  
+  const headers = {
+    'Cache-Control': 'no-store, max-age=0, must-revalidate',
+  };
+
   try {
     const { searchParams } = new URL(request.url);
     const username = searchParams.get('username');
@@ -22,7 +27,7 @@ export async function GET(request: Request) {
 
     if (!username) {
       console.log('[Client Gallery API] Username is required, returning 400');
-      return NextResponse.json({ error: 'Username is required' }, { status: 400 });
+      return NextResponse.json({ error: 'Username is required' }, { status: 400, headers });
     }
 
     // Find the client in the database to get their specific folderId
@@ -34,7 +39,7 @@ export async function GET(request: Request) {
 
     if (!client || !client.folderId) {
       console.warn(`[Client Gallery API] Client or folderId not found for username: ${username}. Returning empty images array.`);
-      return NextResponse.json({ images: [] });
+      return NextResponse.json({ images: [] }, { headers });
     }
     console.log(`[Client Gallery API] Using folderId: ${client.folderId} for Google Drive query.`); // Log folderId used
 
@@ -56,7 +61,7 @@ export async function GET(request: Request) {
     })) || [];
     console.log('[Client Gallery API] Mapped images being sent to client:', JSON.stringify(images, null, 2)); // Log mapped images
 
-    return NextResponse.json({ images });
+    return NextResponse.json({ images }, { headers });
   } catch (error) {
     console.error('[Client Gallery API] Error fetching client gallery:', error); 
     if (error instanceof Error && error.message.includes('Prisma')) {
@@ -64,7 +69,7 @@ export async function GET(request: Request) {
     }
     return NextResponse.json(
       { error: 'Failed to fetch gallery. Please check server logs.' }, 
-      { status: 500 }
+      { status: 500, headers }
     );
   }
 } 
