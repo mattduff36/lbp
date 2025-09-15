@@ -51,7 +51,7 @@ export async function GET(request: Request) {
     const imagesResponse = await drive.files.list({
       q: `'${categoryFolder.id}' in parents and mimeType contains 'image/'`,
       fields: 'files(id, name, webContentLink, thumbnailLink)',
-      orderBy: 'createdTime desc',
+      orderBy: 'name asc',
       pageSize: limit ? parseInt(limit, 10) : 1000, // Default to 1000 if no limit
     });
     

@@ -42,7 +42,7 @@ export async function GET(request: Request) {
     const imagesResponse = await drive.files.list({
       q: `'${client.folderId}' in parents and mimeType contains 'image/'`, 
       fields: 'files(id, name, webContentLink, thumbnailLink)',
-      orderBy: 'createdTime desc',
+      orderBy: 'name asc',
     });
     console.log('[Client Gallery API] Raw response from Google Drive files.list:', JSON.stringify(imagesResponse.data, null, 2)); // Log raw Drive response
 

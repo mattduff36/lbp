@@ -41,6 +41,61 @@ export default function ClientGalleryPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showSlideshow, setShowSlideshow] = useState(false);
+  const [justifiedRows, setJustifiedRows] = useState<Array<{images: PortfolioImage[], height: number}>>([]);
+
+  // Function to create justified rows (like Google Photos)
+  const calculateJustifiedRows = (images: PortfolioImage[]) => {
+    if (images.length === 0) return [];
+    
+    const containerWidth = 1200; // Target container width
+    const targetHeight = 250; // Target row height
+    const maxRowHeight = 350;
+    const minRowHeight = 200;
+    
+    const rows: Array<{images: PortfolioImage[], height: number}> = [];
+    let currentRow: PortfolioImage[] = [];
+    let currentRowWidth = 0;
+    
+    for (let i = 0; i < images.length; i++) {
+      const image = images[i];
+      const aspectRatio = (image.width || 400) / (image.height || 300);
+      const imageWidth = targetHeight * aspectRatio;
+      
+      // Check if adding this image would exceed container width
+      if (currentRow.length > 0 && currentRowWidth + imageWidth > containerWidth) {
+        // Finalize current row
+        const totalAspectRatio = currentRow.reduce((sum, img) => sum + ((img.width || 400) / (img.height || 300)), 0);
+        const optimalHeight = containerWidth / totalAspectRatio;
+        const clampedHeight = Math.max(minRowHeight, Math.min(maxRowHeight, optimalHeight));
+        
+        rows.push({ images: [...currentRow], height: clampedHeight });
+        currentRow = [image];
+        currentRowWidth = imageWidth;
+      } else {
+        currentRow.push(image);
+        currentRowWidth += imageWidth;
+      }
+    }
+    
+    // Handle last row
+    if (currentRow.length > 0) {
+      const totalAspectRatio = currentRow.reduce((sum, img) => sum + ((img.width || 400) / (img.height || 300)), 0);
+      const optimalHeight = Math.min(containerWidth / totalAspectRatio, targetHeight);
+      const clampedHeight = Math.max(minRowHeight, Math.min(maxRowHeight, optimalHeight));
+      
+      rows.push({ images: currentRow, height: clampedHeight });
+    }
+    
+    return rows;
+  };
+
+  // Recalculate justified rows when images change
+  useEffect(() => {
+    if (images.length > 0) {
+      const rows = calculateJustifiedRows(images);
+      setJustifiedRows(rows);
+    }
+  }, [images]);
 
   useEffect(() => {
     if (!username) return;
@@ -225,39 +280,57 @@ export default function ClientGalleryPage() {
         
         {images.length > 0 ? (
           <motion.div 
-            className="columns-1 sm:columns-2 md:columns-3 lg:columns-4 gap-4"
+            className="space-y-2 max-w-6xl mx-auto"
             variants={gridContainerVariants}
             initial="hidden"
             animate="visible"
           >
-            {images.map((image, index) => (
+            {justifiedRows.map((row, rowIndex) => (
               <motion.div
-                key={`${image.id}-${index}`}
-                className="relative group overflow-hidden mb-4 break-inside-avoid cursor-pointer"
-                onClick={() => handleOpenModal(image, index)}
-                onKeyDown={(e) => e.key === 'Enter' && handleOpenModal(image, index)}
-                tabIndex={0}
-                role="button"
-                aria-label={`View image ${image.name}`}
+                key={rowIndex}
+                className="flex gap-2 justify-center"
                 variants={gridItemVariants}
               >
-                <Image
-                  src={image.src}
-                  alt={image.name || 'Client image'}
-                  width={image.width || 400}
-                  height={image.height || 300}
-                  className="object-cover w-full h-auto transition-transform duration-300 ease-in-out group-hover:scale-110"
-                  sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
-                  priority={index < 8}
-                />
-                <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                <button
-                  onClick={(e) => handleDownloadSingle(e, image)}
-                  className="absolute bottom-2 right-2 p-3 bg-black/50 rounded-full text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300 hover:bg-black/75 focus:outline-none focus:ring-2 focus:ring-white"
-                  aria-label="Download image"
-                >
-                  <FaDownload />
-                </button>
+                {row.images.map((image, colIndex) => {
+                  const imageIndex = images.findIndex(img => img.id === image.id);
+                  const aspectRatio = (image.width || 400) / (image.height || 300);
+                  const imageWidth = row.height * aspectRatio;
+                  
+                  return (
+                    <motion.div
+                      key={`${image.id}-${imageIndex}`}
+                      className="relative group overflow-hidden cursor-pointer"
+                      onClick={() => handleOpenModal(image, imageIndex)}
+                      onKeyDown={(e) => e.key === 'Enter' && handleOpenModal(image, imageIndex)}
+                      tabIndex={0}
+                      role="button"
+                      aria-label={`View image ${image.name}`}
+                      style={{ 
+                        height: `${row.height}px`,
+                        width: `${imageWidth}px`
+                      }}
+                      variants={gridItemVariants}
+                    >
+                      <Image
+                        src={image.src}
+                        alt={image.name || 'Client image'}
+                        width={image.width || 400}
+                        height={image.height || 300}
+                        className="object-cover w-full h-full transition-transform duration-300 ease-in-out group-hover:scale-105"
+                        sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                        priority={imageIndex < 8}
+                      />
+                      <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                      <button
+                        onClick={(e) => handleDownloadSingle(e, image)}
+                        className="absolute bottom-2 right-2 p-3 bg-black/50 rounded-full text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300 hover:bg-black/75 focus:outline-none focus:ring-2 focus:ring-white"
+                        aria-label="Download image"
+                      >
+                        <FaDownload />
+                      </button>
+                    </motion.div>
+                  );
+                })}
               </motion.div>
             ))}
           </motion.div>
