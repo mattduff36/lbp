@@ -45,6 +45,7 @@ export async function GET(request: Request) {
     const imagesResponse = await drive.files.list({
       q: `'${client.folderId}' in parents and mimeType contains 'image/'`, // Use client.folderId
       fields: 'files(id, name)', // Only need id and name for direct download
+      pageSize: 1000, // Ensure we get all images for download
     });
     console.log('[Download API] Files listed from Drive:', JSON.stringify(imagesResponse.data.files));
 

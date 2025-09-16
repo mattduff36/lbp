@@ -23,6 +23,7 @@ export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
     const username = searchParams.get('username');
+    const limit = searchParams.get('limit');
     console.log(`[Client Gallery API] Username: ${username}`); // Log username
 
     if (!username) {
@@ -48,6 +49,7 @@ export async function GET(request: Request) {
       q: `'${client.folderId}' in parents and mimeType contains 'image/'`, 
       fields: 'files(id, name, webContentLink, thumbnailLink)',
       orderBy: 'name asc',
+      pageSize: limit ? parseInt(limit, 10) : 1000, // Default to 1000 if no limit
     });
     console.log('[Client Gallery API] Raw response from Google Drive files.list:', JSON.stringify(imagesResponse.data, null, 2)); // Log raw Drive response
 

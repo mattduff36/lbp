@@ -34,6 +34,7 @@ export async function GET() {
       q: `'${HERO_FOLDER_ID}' in parents and mimeType contains 'image/'`,
       fields: 'files(id, name, webContentLink)',
       orderBy: 'createdTime desc',
+      pageSize: 1000, // Ensure we get all hero images
     });
 
     const images = imagesResponse.data.files?.map((file, index) => ({
