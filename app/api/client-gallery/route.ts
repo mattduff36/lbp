@@ -17,7 +17,7 @@ export async function GET(request: Request) {
   console.log('[Client Gallery API] Received GET request'); // Log request received
   
   const headers = {
-    'Cache-Control': 'no-store, max-age=0, must-revalidate',
+    'Cache-Control': 'public, max-age=900, s-maxage=1800, stale-while-revalidate=86400',
   };
 
   try {

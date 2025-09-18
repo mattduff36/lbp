@@ -21,7 +21,7 @@ const fallbackImages = [
 
 export async function GET() {
   const headers = {
-    'Cache-Control': 'no-store, max-age=0, must-revalidate',
+    'Cache-Control': 'public, max-age=3600, s-maxage=7200, stale-while-revalidate=86400',
   };
 
   if (!HERO_FOLDER_ID) {

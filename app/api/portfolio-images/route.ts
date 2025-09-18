@@ -18,7 +18,7 @@ export async function GET(request: Request) {
   const limit = searchParams.get('limit');
 
   const headers = {
-    'Cache-Control': 'no-store, max-age=0, must-revalidate',
+    'Cache-Control': 'public, max-age=1800, s-maxage=3600, stale-while-revalidate=86400',
   };
 
   if (!category) {
