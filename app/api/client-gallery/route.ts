@@ -16,15 +16,21 @@ const drive = google.drive({ version: 'v3', auth });
 export async function GET(request: Request) {
   console.log('[Client Gallery API] Received GET request'); // Log request received
   
-  const headers = {
+  const { searchParams } = new URL(request.url);
+  const username = searchParams.get('username');
+  const limit = searchParams.get('limit');
+  const forceRefresh = searchParams.get('refresh');
+  
+  // Override caching if refresh parameter is present
+  const headers: Record<string, string> = forceRefresh ? {
+    'Cache-Control': 'no-store, max-age=0, must-revalidate',
+    'X-Force-Refresh': 'true',
+  } : {
     'Cache-Control': 'public, max-age=900, s-maxage=1800, stale-while-revalidate=86400',
   };
 
   try {
-    const { searchParams } = new URL(request.url);
-    const username = searchParams.get('username');
-    const limit = searchParams.get('limit');
-    console.log(`[Client Gallery API] Username: ${username}`); // Log username
+    console.log(`[Client Gallery API] Username: ${username}, Force Refresh: ${forceRefresh}`); // Log username
 
     if (!username) {
       console.log('[Client Gallery API] Username is required, returning 400');

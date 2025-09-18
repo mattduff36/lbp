@@ -100,16 +100,29 @@ export default function ClientGalleryPage() {
   useEffect(() => {
     if (!username) return;
 
-    const fetchImages = async () => {
+    const fetchImages = async (forceRefresh = false) => {
       setIsLoading(true);
       setError(null);
       try {
-        const response = await fetch(`/api/client-gallery?username=${username}`);
+        // Check URL for refresh parameter
+        const urlParams = new URLSearchParams(window.location.search);
+        const shouldRefresh = forceRefresh || urlParams.has('refresh');
+        
+        const apiUrl = shouldRefresh 
+          ? `/api/client-gallery?username=${username}&refresh=true`
+          : `/api/client-gallery?username=${username}`;
+          
+        console.log(`[CLIENT] Fetching images${shouldRefresh ? ' (force refresh)' : ''}: ${apiUrl}`);
+        
+        const response = await fetch(apiUrl);
         if (!response.ok) {
           const errorData = await response.json().catch(() => ({}));
           throw new Error(errorData.error || `Failed to fetch images. Status: ${response.status}`);
         }
         const data = await response.json();
+        
+        console.log(`[CLIENT] Received ${data.images?.length || 0} images from API`);
+        
         // Ensure the fetched data conforms to PortfolioImage, especially `src`
         const fetchedImages: PortfolioImage[] = data.images
           .filter((img: any) => img.src)
@@ -122,6 +135,13 @@ export default function ClientGalleryPage() {
             height: img.height || 300, // Default or fetched height
           }));
         setImages(fetchedImages);
+        
+        // If we forced a refresh, clean up the URL
+        if (shouldRefresh && urlParams.has('refresh')) {
+          urlParams.delete('refresh');
+          const newUrl = `${window.location.pathname}${urlParams.toString() ? '?' + urlParams.toString() : ''}`;
+          window.history.replaceState({}, '', newUrl);
+        }
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to load images');
       } finally {
