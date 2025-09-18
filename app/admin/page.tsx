@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import ClientManagement from '../components/ClientManagement';
-import AdminDashboard from '../components/AdminDashboard';
+import ManualSync from '../components/ManualSync';
 
 type AdminTab = 'clientManagement' | 'manualSync';
 
@@ -188,7 +188,7 @@ export default function AdminPage() {
       <div className="max-w-4xl mx-auto px-8">
         <div className="py-8">
           {activeTab === 'clientManagement' && <ClientManagement onLogout={handleLogoutForTabs} />}
-          {activeTab === 'manualSync' && <AdminDashboard onLogout={handleLogoutForTabs} />}
+          {activeTab === 'manualSync' && <ManualSync onLogout={handleLogoutForTabs} />}
         </div>
       </div>
     </div>
